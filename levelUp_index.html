@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LevelUp Videos</title>
+  <link rel="icon" href="levelup-tab-icon.png" type="image/png">
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: sans-serif;
+      color: white;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      justify-content: center;
+      background-color: #000;
+      border-bottom: 1px solid #222;
+    }
+    header img {
+      max-height: 50px;
+    }
+    .section {
+      margin: 2rem 1rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .video-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding-bottom: 0.5rem;
+    }
+    .video {
+      min-width: 300px;
+      flex-shrink: 0;
+      background-color: #111;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .video img {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: pointer;
+    }
+    .video-row::-webkit-scrollbar {
+      height: 6px;
+    }
+    .video-row::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="levelup_logo.png" alt="LevelUp Logo">
+  </header>
+  
+  <main>
+    <div class="section">
+      <div class="section-title">تعلم البرمجة</div>
+      <div class="video-row" id="prog-videos"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">تطوير الذات</div>
+      <div class="video-row" id="self-videos"></div>
+    </div>
+  </main>
+
+  <!-- Firebase + جلب الفيديوهات -->
+  <!-- استبدلي السكربت القديم بهذا -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDzoEzH1W6Z1lncab5Se8PObYFp6060oTk",
+    authDomain: "levelup-d5f5c.firebaseapp.com",
+    projectId: "levelup-d5f5c",
+    storageBucket: "levelup-d5f5c.appspot.com",
+    messagingSenderId: "189128717624",
+    appId: "1:189128717624:web:5a36bb4393eef1dca17dcd",
+    databaseURL: "https://levelup-d5f5c-default-rtdb.firebaseio.com/"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  function createSectionIfNotExists(sectionName, videoElement) {
+    let section = document.querySelector(`[data-section="${sectionName}"]`);
+    if (!section) {
+      section = document.createElement("div");
+      section.className = "section";
+      section.setAttribute("data-section", sectionName);
+      section.innerHTML = `
+        <div class="section-title">${sectionName}</div>
+        <div class="video-row" id="row-${sectionName}"></div>
+      `;
+      document.querySelector("main").appendChild(section);
+    }
+
+    const container = section.querySelector(`#row-${sectionName}`);
+    container.appendChild(videoElement);
+  }
+
+  function loadVideos() {
+    const videosRef = ref(db, 'videos');
+    onValue(videosRef, (snapshot) => {
+      document.querySelector("main").innerHTML = ""; // مسح القديم
+      const data = snapshot.val();
+      if (!data) return;
+      Object.values(data).forEach(({ section, videoId, title }) => {
+        const videoElement = document.createElement("div");
+        videoElement.className = "video";
+        videoElement.innerHTML = `
+          <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">
+            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${title}">
+          </a>`;
+        createSectionIfNotExists(section, videoElement);
+      });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', loadVideos);
+</script>
+</body>
+</html>
