@@ -1,126 +1,326 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LevelUp Videos</title>
+ <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2484987481905080"
+     crossorigin="anonymous"></script>
   <link rel="icon" href="levelup-tab-icon.png" type="image/png">
-  <style>
+  <style>  
     body {
       margin: 0;
       background-color: #000;
       font-family: sans-serif;
       color: white;
+      zoom: 1.2;
     }
     header {
       display: flex;
       align-items: center;
-      padding: 1rem;
+      padding: 0.75rem 1rem;
       justify-content: center;
       background-color: #000;
       border-bottom: 1px solid #222;
     }
     header img {
-      max-height: 50px;
+      max-height: 48px;
+    }
+    main {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
     }
     .section {
-      margin: 2rem 1rem;
+      margin: 1.5rem 0;
     }
+
+    
     .section-title {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .video-row {
-      display: flex;
-      overflow-x: auto;
-      gap: 1rem;
-      padding-bottom: 0.5rem;
-    }
+  font-size: 1.25rem;
+  margin: 0 1rem 0.5rem;
+}
+
+.video-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 0 1rem 1.5rem; /* زودنا المسافة هنا */
+}
     .video {
-      min-width: 300px;
-      flex-shrink: 0;
-      background-color: #111;
-      border-radius: 8px;
+      flex: 0 0 240px;
+      background-color: #000;
+    }
+    .video a {
+      display: block;
+    }
+    .video-thumb-wrapper {
+      border-radius: 6px;
       overflow: hidden;
     }
-    .video img {
+    .video-thumb {
       width: 100%;
-      height: auto;
-      display: block;
-      cursor: pointer;
+      aspect-ratio: 16 / 9;
+      background-size: cover;
+      background-position: center;
     }
-    .video-row::-webkit-scrollbar {
-      height: 6px;
+    .video-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
     }
-    .video-row::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 4px;
+    .channel-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
     }
+    .video-title-box {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .video-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .video-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      width: 100%;
+    }
+    .overlay-ad {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: #000000ee;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-size: 1.5rem;
+    }
+    
+    .video-thumb.loading {
+  background: linear-gradient(
+    90deg,
+    #222 25%,
+    #333 50%,
+    #222 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.channel-thumb.loading {
+  background: linear-gradient(
+    90deg,
+    #222 25%,
+    #333 50%,
+    #222 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.video-title.loading {
+  background: linear-gradient(
+    90deg,
+    #222 25%,
+    #333 50%,
+    #222 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  height: 12px;
+  border-radius: 4px;
+  width: 80%;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
   </style>
 </head>
 <body>
   <header>
     <img src="levelup_logo.png" alt="LevelUp Logo">
   </header>
-  
-  <main>
-  </main>
+  <main></main>
 
-  <!-- Firebase + جلب الفيديوهات -->
-  <!-- استبدلي السكربت القديم بهذا -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDzoEzH1W6Z1lncab5Se8PObYFp6060oTk",
-    authDomain: "levelup-d5f5c.firebaseapp.com",
-    projectId: "levelup-d5f5c",
-    storageBucket: "levelup-d5f5c.appspot.com",
-    messagingSenderId: "189128717624",
-    appId: "1:189128717624:web:5a36bb4393eef1dca17dcd",
-    databaseURL: "https://levelup-d5f5c-default-rtdb.firebaseio.com/"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDzoEzH1W6Z1lncab5Se8PObYFp6060oTk",
+  authDomain: "levelup-d5f5c.firebaseapp.com",
+  databaseURL: "https://levelup-d5f5c-default-rtdb.firebaseio.com/",
+  projectId: "levelup-d5f5c",
+  storageBucket: "levelup-d5f5c.appspot.com",
+  messagingSenderId: "189128717624",
+  appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  function createSectionIfNotExists(sectionName, videoElement) {
-    let section = document.querySelector(`[data-section="${sectionName}"]`);
-    if (!section) {
-      section = document.createElement("div");
-      section.className = "section";
-      section.setAttribute("data-section", sectionName);
-      section.innerHTML = `
-        <div class="section-title">${sectionName}</div>
-        <div class="video-row" id="row-${sectionName}"></div>
-      `;
-      document.querySelector("main").appendChild(section);
+const allData = new Map();
+const renderedSections = new Set();
+
+async function getVideoData(videoId) {
+  const apiKey = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk";
+  try {
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`);
+    const data = await res.json();
+    const snippet = data.items?.[0]?.snippet;
+    if (!snippet) return null;
+
+    const channelId = snippet.channelId;
+    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${apiKey}`);
+    const channelData = await channelRes.json();
+    const channelSnippet = channelData.items?.[0]?.snippet;
+
+    return {
+      title: snippet.title,
+      channelTitle: snippet.channelTitle,
+      channelThumb: channelSnippet?.thumbnails?.default?.url || "",
+      channelUrl: `https://www.youtube.com/channel/${channelId}`
+    };
+  } catch {
+    return null;
+  }
+}
+
+function createVideoElement(videoId) {
+  const el = document.createElement("div");
+  el.className = "video";
+  el.innerHTML = `
+    <a href="#" onclick="event.preventDefault()">
+      <div class="video-thumb-wrapper">
+        <div class="video-thumb loading"></div>
+      </div>
+    </a>
+    <div class="video-info">
+      <div class="channel-thumb loading"></div>
+      <div class="video-title-box">
+        <div class="video-title-row">
+          <div class="video-title loading"></div>
+        </div>
+        <div style="font-size: 0.75rem; color: #333;">&nbsp;</div>
+      </div>
+    </div>`;
+  return el;
+}
+
+async function upgradeVideoElement(videoDiv, videoId) {
+  const info = await getVideoData(videoId);
+  if (!info) return;
+  videoDiv.innerHTML = `
+    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${videoId}', event)">
+      <div class="video-thumb-wrapper">
+        <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg');"></div>
+      </div>
+    </a>
+    <div class="video-info">
+      <a href="${info.channelUrl}" target="_blank">
+        <img src="${info.channelThumb}" class="channel-thumb" alt="${info.channelTitle}">
+      </a>
+      <div class="video-title-box">
+        <div class="video-title-row">
+          <div class="video-title">${info.title}</div>
+        </div>
+        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle}</div>
+      </div>
+    </div>`;
+}
+
+function createSection(sectionName, videos) {
+  const container = document.createElement("div");
+  container.className = "section";
+  container.setAttribute("data-section", sectionName);
+
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = sectionName;
+
+  const row = document.createElement("div");
+  row.className = "video-row";
+
+  // ✅ نخلط الفيديوهات عشوائيًا
+  const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
+
+  for (const { videoId } of shuffledVideos) {
+    const videoEl = createVideoElement(videoId);
+    row.appendChild(videoEl);
+
+    const observer = new IntersectionObserver(async (entries, obs) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          await upgradeVideoElement(videoEl, videoId);
+          obs.unobserve(entry.target);
+        }
+      }
+    }, { rootMargin: "200px" });
+
+    observer.observe(videoEl);
+  }
+
+  container.appendChild(title);
+  container.appendChild(row);
+  document.querySelector("main").appendChild(container);
+}
+
+function renderAllSections() {
+  for (const [sectionName, videos] of allData.entries()) {
+    if (!renderedSections.has(sectionName)) {
+      createSection(sectionName, videos);
+      renderedSections.add(sectionName);
     }
-
-    const container = section.querySelector(`#row-${sectionName}`);
-    container.appendChild(videoElement);
   }
+}
 
-  function loadVideos() {
-    const videosRef = ref(db, 'videos');
-    onValue(videosRef, (snapshot) => {
-      document.querySelector("main").innerHTML = ""; // مسح القديم
-      const data = snapshot.val();
-      if (!data) return;
-      Object.values(data).forEach(({ section, videoId, title }) => {
-        const videoElement = document.createElement("div");
-        videoElement.className = "video";
-        videoElement.innerHTML = `
-          <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">
-            <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="${title}">
-          </a>`;
-        createSectionIfNotExists(section, videoElement);
-      });
-    });
-  }
+function loadVideos() {
+  onValue(ref(db, 'videos'), snapshot => {
+    const data = snapshot.val() || {};
+    for (const key in data) {
+      const item = data[key];
+      if (!item.section || !item.videoId) continue;
+      if (!allData.has(item.section)) {
+        allData.set(item.section, []);
+      }
+      allData.get(item.section).push({ videoId: item.videoId });
+    }
+    renderAllSections();
+  });
+}
 
-  window.addEventListener('DOMContentLoaded', loadVideos);
+function handleVideoClick(url, event) {
+  event.preventDefault();
+  const overlay = document.createElement("div");
+  overlay.className = "overlay-ad";
+  overlay.innerHTML = `
+    <div style="margin-top: 1rem;">
+      <img src="ads/ad2.jpg" style="max-width: 90%; max-height: 300px; border-radius: 10px;" />
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => window.location.href = url, 2000);
+}
+
+window.handleVideoClick = handleVideoClick;
+window.addEventListener("DOMContentLoaded", loadVideos);
 </script>
 </body>
 </html>
