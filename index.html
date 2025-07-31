@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+!!!!!!!!!!!! 
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -254,14 +255,15 @@ function createSection(sectionName, videos) {
 
   const title = document.createElement("div");
   title.className = "section-title";
-  title.textContent = `${sectionName} (${videos.length})`;
+  title.textContent = sectionName;
 
   const row = document.createElement("div");
   row.className = "video-row";
 
+  // ✅ نخلط الفيديوهات عشوائيًا
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
 
-  shuffledVideos.forEach(({ videoId }, i) => {
+  for (const { videoId } of shuffledVideos) {
     const videoEl = createVideoElement(videoId);
     row.appendChild(videoEl);
 
@@ -275,27 +277,7 @@ function createSection(sectionName, videos) {
     }, { rootMargin: "200px" });
 
     observer.observe(videoEl);
-
-    // ✅ إعلان Google AdSense بعد كل 5 فيديوهات
-    if ((i + 1) % 5 === 0) {
-      const adContainer = document.createElement("div");
-      adContainer.className = "video";
-      adContainer.innerHTML = `
-        <ins class="adsbygoogle"
-             style="display:block; text-align:center;"
-             data-ad-layout="in-article"
-             data-ad-format="fluid"
-             data-ad-client="ca-pub-2484987481905080"
-             data-ad-slot="3296274762"></ins>`;
-      row.appendChild(adContainer);
-
-      try {
-        (adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        console.warn("AdSense error:", e);
-      }
-    }
-  });
+  }
 
   container.appendChild(title);
   container.appendChild(row);
@@ -341,3 +323,5 @@ function handleVideoClick(url, event) {
 window.handleVideoClick = handleVideoClick;
 window.addEventListener("DOMContentLoaded", loadVideos);
 </script>
+</body>
+</html>
