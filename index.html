@@ -152,15 +152,35 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+
+/* ====== Adsterra Ads Style ====== */
+.ad-box {
+  flex: 0 0 240px; /* نفس عرض الفيديوهات */
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  color: white;
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.ad-box iframe {
+  border-radius: 6px;
+  max-width: 100%;
+}
   </style>
 </head>
 <body>
   <header>
     <img src="levelup_logo.png" alt="LevelUp Logo">
   </header>
-  <main></main>
+<main></main>
 
+<!-- ======= Main scripts: Firebase, YouTube data, rendering + ads integration ======= -->
 <script type="module">
+/* == Firebase & YouTube setup (مثل ما كان عندك) == */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
@@ -177,9 +197,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+/* == بيانات عامة وخرائط تخزين الفيديوهات == */
 const allData = new Map();
 const renderedSections = new Set();
 
+/* == YouTube API (مثل ما كان عندك) == */
 async function getVideoData(videoId) {
   const apiKey = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk";
   try {
@@ -204,6 +226,7 @@ async function getVideoData(videoId) {
   }
 }
 
+/* == إنشاء عنصر الفيديو (loader state) == */
 function createVideoElement(videoId) {
   const el = document.createElement("div");
   el.className = "video";
@@ -225,6 +248,7 @@ function createVideoElement(videoId) {
   return el;
 }
 
+/* == ترقية العنصر بعد الـ lazy load لاستبدال الـ skeleton بالمحتوى الحقيقي == */
 async function upgradeVideoElement(videoDiv, videoId) {
   const info = await getVideoData(videoId);
   if (!info) return;
@@ -247,6 +271,32 @@ async function upgradeVideoElement(videoDiv, videoId) {
     </div>`;
 }
 
+/* == إعدادات الإعلانات (تعديل حسب كودك لو احتجت) == */
+const AD_SCRIPT_SRC = "//pl2779660.revenuecpmgate.com/3e51fee3aaec8213eaefef905d032215c/invoke.js";
+const AD_BASE_CONTAINER = "container-3e51fee3aaec8213eaefef905d032215c"; // سيتم اشتقاق معرفات فريدة منه
+const AD_FREQUENCY = 3; // كل كام فيديو نظهر إعلان (1 => بعد كل فيديو، 3 => بعد كل 3 فيديوهات، إلخ)
+let adGlobalCounter = 0;
+
+/* == دالة إنشاء عنصر الإعلان (لا تضع <script> كنص داخل innerHTML لأنها لا تتنفذ دائماً) == */
+function createAdElement() {
+  adGlobalCounter += 1;
+  const adWrapper = document.createElement('div');
+  // نستخدم نفس كلاس .video عشان ينسجم مع البلاطات، مع إضافة ad-box للتمييز
+  adWrapper.className = 'video ad-box';
+  adWrapper.setAttribute('data-ad', 'true');
+
+  // معرف فريد لكل إعلان
+  const containerId = `${AD_BASE_CONTAINER}-${adGlobalCounter}`;
+  const adContainer = document.createElement('div');
+  adContainer.id = containerId;
+  adWrapper.appendChild(adContainer);
+
+  // نؤجل إضافة سكربت التحميل قليلاً حتى نضمن أن العنصر أصبح في DOM
+  // نضيف سكربت Adsterra بعد إضافة العنصر للصفحة (في caller)
+  return { adWrapper, containerId };
+}
+
+/* == إنشاء السكشن + إدراج الإعلانات بشكل دوري داخل كل صف == */
 function createSection(sectionName, videos) {
   const container = document.createElement("div");
   container.className = "section";
@@ -259,30 +309,55 @@ function createSection(sectionName, videos) {
   const row = document.createElement("div");
   row.className = "video-row";
 
-  // ✅ نخلط الفيديوهات عشوائيًا
+  // نخلط الفيديوهات عشوائيًا
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
 
-  for (const { videoId } of shuffledVideos) {
-    const videoEl = createVideoElement(videoId);
+  shuffledVideos.forEach((videoObj, idx) => {
+    const videoEl = createVideoElement(videoObj.videoId);
     row.appendChild(videoEl);
 
+    // intersection observer للـ lazy upgrade
     const observer = new IntersectionObserver(async (entries, obs) => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
-          await upgradeVideoElement(videoEl, videoId);
+          await upgradeVideoElement(videoEl, videoObj.videoId);
           obs.unobserve(entry.target);
         }
       }
     }, { rootMargin: "200px" });
 
     observer.observe(videoEl);
-  }
+
+    // بعد كل AD_FREQUENCY فيديوهات نضيف عنصر إعلان واحد
+    if ((idx + 1) % AD_FREQUENCY === 0) {
+      const { adWrapper, containerId } = createAdElement();
+      row.appendChild(adWrapper);
+
+      // نضيف السكربت بعد أن تم إلحاق العنصر بـ DOM (نستخدم setTimeout بسيط لضمان التنفيذ)
+      // هذا السكربت سيحاول تحميل invoke.js وسيبحث عن الحاويات المتوفرة (النتيجة تعتمد على طريقة عمل Adsterra).
+      setTimeout(() => {
+        const s = document.createElement('script');
+        s.async = true;
+        s.setAttribute('data-cfasync', 'false');
+        s.src = AD_SCRIPT_SRC;
+        // إضافة تعليق/بيان لتسهيل debug في الـ console
+        s.onload = () => {
+          // console.log(`Ad script loaded for container ${containerId}`);
+        };
+        s.onerror = (e) => {
+          console.warn('Ad script failed to load', e);
+        };
+        document.body.appendChild(s);
+      }, 80);
+    }
+  });
 
   container.appendChild(title);
   container.appendChild(row);
   document.querySelector("main").appendChild(container);
 }
 
+/* == إعادة العرض لجميع السكشنات (نستخدم renderedSections لمنع التكرار) == */
 function renderAllSections() {
   for (const [sectionName, videos] of allData.entries()) {
     if (!renderedSections.has(sectionName)) {
@@ -292,9 +367,16 @@ function renderAllSections() {
   }
 }
 
+/* == تحميل الفيديوهات من Firebase (مع تنظيف قبل كل ريفرش) == */
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
+
+    // تنظيف + إعادة البناء (عشان مايحصلش تكرار لو الـ callback اتنادى تاني)
+    allData.clear();
+    renderedSections.clear();
+    document.querySelector("main").innerHTML = '';
+
     for (const key in data) {
       const item = data[key];
       if (!item.section || !item.videoId) continue;
@@ -303,10 +385,12 @@ function loadVideos() {
       }
       allData.get(item.section).push({ videoId: item.videoId });
     }
+
     renderAllSections();
   });
 }
 
+/* == عند الضغط على الفيديو: عرض Overlay إعلاني ثم تحويل للـ YouTube == */
 function handleVideoClick(url, event) {
   event.preventDefault();
   const overlay = document.createElement("div");
@@ -319,10 +403,14 @@ function handleVideoClick(url, event) {
   setTimeout(() => window.location.href = url, 2000);
 }
 
+/* == وصل الدالة لعالم النوافذ (حتى يمكن استدعاؤها من الـ HTML المولد) == */
 window.handleVideoClick = handleVideoClick;
+
+/* == ابدأ العملية لما الـ DOM يكون جاهز == */
 window.addEventListener("DOMContentLoaded", loadVideos);
+
 </script>
-  </script>
+
 <!-- ======= Footer ======= -->
 <footer style="text-align:center; padding: 20px; background: #333; font-size: 14px;">
   <a href="#" onclick="openModal('about')" style="color:white;">من نحن</a> |
@@ -338,7 +426,7 @@ window.addEventListener("DOMContentLoaded", loadVideos);
   <p>
     أهلاً بك في منصة <strong>Level Up</strong>، وجهتك العربية نحو تطوير الذات وبناء النفس.<br><br>
     نؤمن أن المعرفة هي المفتاح الحقيقي للتغيير، وأن كل إنسان يمتلك القدرة على النمو والتحسن إذا توفرت له الأدوات المناسبة.<br>
-    في هذا الموقع نقدم محتوى مميز في مجالات تطوير الذات، زيادة الثقافة، تنمية المهارات، والتعلم الذاتي بطريقة مبسطة وملهمة.<br><br>
+    في هذا موقع نقدم محتوى مميز في مجالات تطوير الذات، زيادة الثقافة، تنمية المهارات، والتعلم الذاتي بطريقة مبسطة وملهمة.<br><br>
     هدفنا هو أن نكون مصدرًا ثابتًا يساعدك على الارتقاء بحياتك وفكرك خطوة بخطوة.<br>
     نسعد دائماً بتواصلكم واقتراحاتكم عبر البريد الإلكتروني.
   </p>
@@ -357,7 +445,7 @@ window.addEventListener("DOMContentLoaded", loadVideos);
   <button onclick="closeModal()" style="margin-top:15px; background:#FF9934; border:none; padding:8px 16px; border-radius:5px; color:white;">إغلاق</button>
 </div>
 
-<!-- ======= Modal Script ======= -->
+<!-- ======= Modal Script (unchanged) ======= -->
 <script>
   function openModal(type) {
     document.getElementById('modal-overlay').style.display = 'block';
@@ -375,4 +463,4 @@ window.addEventListener("DOMContentLoaded", loadVideos);
   }
 </script>
 </body>
-</html>
+  </html>
