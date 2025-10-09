@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LevelUp Videos</title>
- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2484987481905080"
-     crossorigin="anonymous"></script>
+  
+  <meta name="monetag" content="2e87d4aefe353a2ba777f587747f80c34">
+  
   <link rel="icon" href="levelup-tab-icon.png" type="image/png">
   <style>  
+    /* ==================================== */
+    /* التنسيقات الأساسية */
+    /* ==================================== */
     body {
       margin: 0;
       background-color: #000;
@@ -35,24 +39,27 @@
       margin: 1.5rem 0;
     }
 
-    
+    /* تنسيق الصفوف والفيديوهات */
     .section-title {
-  font-size: 1.25rem;
-  margin: 0 1rem 0.5rem;
-}
+      font-size: 1.25rem;
+      margin: 0 1rem 0.5rem;
+    }
 
-.video-row {
-  display: flex;
-  overflow-x: auto;
-  gap: 1rem;
-  padding: 0 1rem 1.5rem; /* زودنا المسافة هنا */
-}
+    .video-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 0 1rem 1.5rem;
+    }
     .video {
       flex: 0 0 240px;
       background-color: #000;
     }
     .video a {
       display: block;
+      cursor: pointer; 
+      text-decoration: none; 
+      color: inherit;
     }
     .video-thumb-wrapper {
       border-radius: 6px;
@@ -80,11 +87,6 @@
       flex-direction: column;
       flex-grow: 1;
     }
-    .video-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
     .video-title {
       font-size: 0.75rem;
       font-weight: 600;
@@ -98,90 +100,87 @@
       white-space: normal;
       width: 100%;
     }
-    .overlay-ad {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: #000000ee;
-      color: white;
+    
+    /* تنسيق الإعلان بحجم الفيديو الواحد */
+    .ad-box {
+      flex: 0 0 240px; 
+      width: 240px; 
+      background-color: #000;
+      padding: 0; 
+      border: 1px dashed #333; /* حدود مؤقتة لمعرفة مكانه */
+      text-align: center;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      z-index: 9999;
-      font-size: 1.5rem;
+      justify-content: center;
+      min-height: 180px; 
+      color: #777;
+      font-size: 0.8rem;
+    }
+
+    /* ==================================== */
+    /* Shimmer Animation (اللمعة) */
+    /* ==================================== */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .video-thumb.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      min-height: 135px;
+      border-radius: 6px;
+    }
+
+    .channel-thumb.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+    }
+
+    .video-title.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      height: 16px !important;
+      border-radius: 4px;
+      width: 100% !important;
+      display: block !important;
+      -webkit-line-clamp: unset !important;
+    }
+
+    .video-subtitle-placeholder.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      height: 12px !important;
+      width: 70% !important;
+      margin-top: 5px;
+      border-radius: 4px;
+      color: transparent !important;
     }
     
-    .video-thumb.loading {
-  background: linear-gradient(
-    90deg,
-    #222 25%,
-    #333 50%,
-    #222 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.channel-thumb.loading {
-  background: linear-gradient(
-    90deg,
-    #222 25%,
-    #333 50%,
-    #222 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.video-title.loading {
-  background: linear-gradient(
-    90deg,
-    #222 25%,
-    #333 50%,
-    #222 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  height: 12px;
-  border-radius: 4px;
-  width: 80%;
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* ====== Adsterra Ads Style ====== */
-.ad-box {
-  flex: 0 0 240px; /* نفس عرض الفيديوهات */
-  background-color: #111;
-  border: 1px solid #222;
-  border-radius: 6px;
-  padding: 8px;
-  text-align: center;
-  color: white;
-  font-size: 0.8rem;
-  overflow: hidden;
-}
-
-.ad-box iframe {
-  border-radius: 6px;
-  max-width: 100%;
-}
   </style>
 </head>
 <body>
   <header>
     <img src="levelup_logo.png" alt="LevelUp Logo">
   </header>
-<main></main>
-
+  <main></main>
+  
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// ====================================
+// 1. إعدادات وقيم ثابتة (Configuration)
+// ====================================
 const firebaseConfig = {
   apiKey: "AIzaSyDzoEzH1W6Z1lncab5Se8PObYFp6060oTk",
   authDomain: "levelup-d5f5c.firebaseapp.com",
@@ -192,22 +191,30 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
+const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
+const AD_INSERTION_INTERVAL = 4; 
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const allData = new Map();
 const renderedSections = new Set();
+let isFirstAdInserted = false; 
 
+// ====================================
+// 2. دوال معالجة البيانات (Data Fetching)
+// ====================================
+
+/** يجلب معلومات الفيديو والقناة من YouTube API */
 async function getVideoData(videoId) {
-  const apiKey = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk";
   try {
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`);
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
     const data = await res.json();
     const snippet = data.items?.[0]?.snippet;
     if (!snippet) return null;
 
     const channelId = snippet.channelId;
-    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${apiKey}`);
+    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
     const channelData = await channelRes.json();
     const channelSnippet = channelData.items?.[0]?.snippet;
 
@@ -222,7 +229,12 @@ async function getVideoData(videoId) {
   }
 }
 
-function createVideoElement(videoId) {
+// ====================================
+// 3. دوال بناء عناصر الواجهة (UI Generation)
+// ====================================
+
+/** ينشئ العنصر النائب للفيديو (Shimmer Loading) */
+function createVideoElement() {
   const el = document.createElement("div");
   el.className = "video";
   el.innerHTML = `
@@ -237,17 +249,21 @@ function createVideoElement(videoId) {
         <div class="video-title-row">
           <div class="video-title loading"></div>
         </div>
-        <div style="font-size: 0.75rem; color: #333;">&nbsp;</div>
+        <div class="video-subtitle-placeholder loading" style="font-size: 0.75rem; color: #333;">&nbsp;</div>
       </div>
     </div>`;
   return el;
 }
 
+/** يحدّث عنصر الفيديو بالبيانات الحقيقية */
 async function upgradeVideoElement(videoDiv, videoId) {
   const info = await getVideoData(videoId);
   if (!info) return;
+
+  const videoLinkUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  
   videoDiv.innerHTML = `
-    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${videoId}', event)">
+    <a href="#" onclick="handleVideoClick('${videoLinkUrl}', event)">
       <div class="video-thumb-wrapper">
         <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg');"></div>
       </div>
@@ -265,27 +281,33 @@ async function upgradeVideoElement(videoDiv, videoId) {
     </div>`;
 }
 
-/* ===== إعداد Adsterra (الكود اللي بعتته) ===== */
-const AD_SCRIPT_SRC = "//pl27796660.revenuecpmgate.com/3e51fee3aaec8213eafef905d032215c/invoke.js";
-const AD_BASE_CONTAINER = "container-3e51fee3aaec8213eafef905d032215c";
-const AD_FREQUENCY = 3; // كل كام فيديو نعرض إعلان
-let adCounter = 0;
-
-/* ننشئ عنصر الإعلان بدون وضع <script> داخل innerHTML */
+/** 💥 دالة عنصر الإعلان (مكان لصق كود البانر النظيف لـ PropellerAds) 💥 */
 function createAdElement() {
-  adCounter += 1;
-  const wrapper = document.createElement("div");
-  wrapper.className = "video ad-box";
-  wrapper.setAttribute("data-ad", "true");
+    const adContainer = document.createElement('div');
+    adContainer.className = "ad-box";
+    adContainer.style.display = 'flex';
+    adContainer.style.backgroundColor = '#000'; 
+    adContainer.innerHTML = `
+        <div class="ad-container">
+            <p style="color:#777; font-size:0.8rem; padding: 20px;">مكان إعلان البانر الجديد (PropellerAds Native Banner)</p>
+        </div>
+    `;
 
-  const containerId = `${AD_BASE_CONTAINER}-${adCounter}`;
-  const containerDiv = document.createElement("div");
-  containerDiv.id = containerId;
-  wrapper.appendChild(containerDiv);
-
-  return { wrapper, containerId };
+    // **هام:** هذا الجزء يضمن تشغيل سكريبت الإعلان المضاف حديثاً إذا كان يتضمن سكريبتات داخلية.
+    adContainer.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        if (oldScript.textContent) {
+            newScript.textContent = oldScript.textContent;
+        }
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+    return adContainer;
 }
 
+/** ينشئ قسم (Section) الفيديوهات ويضيف الإعلان البانر لمرة واحدة */
 function createSection(sectionName, videos) {
   const container = document.createElement("div");
   container.className = "section";
@@ -297,48 +319,45 @@ function createSection(sectionName, videos) {
 
   const row = document.createElement("div");
   row.className = "video-row";
-
-  // نخلط الفيديوهات عشوائياً
+  
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
+  
+  let videoIndex = 0;
+  for (const { videoId } of shuffledVideos) {
+      // 1. إضافة الفيديو العادي
+      const videoEl = createVideoElement();
+      row.appendChild(videoEl);
 
-  shuffledVideos.forEach((videoObj, idx) => {
-    const videoEl = createVideoElement(videoObj.videoId);
-    row.appendChild(videoEl);
+      // IntersectionObserver لتحميل البيانات
+      const observer = new IntersectionObserver(async (entries, obs) => {
+          for (const entry of entries) {
+              if (entry.isIntersecting) {
+                  await upgradeVideoElement(videoEl, videoId);
+                  obs.unobserve(entry.target);
+              }
+          }
+      }, { rootMargin: "200px" });
+      observer.observe(videoEl);
 
-    const observer = new IntersectionObserver(async (entries, obs) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          await upgradeVideoElement(videoEl, videoObj.videoId);
-          obs.unobserve(entry.target);
-        }
+      videoIndex++;
+
+      // 2. إدراج إعلان البانر النظيف لمرة واحدة فقط
+      if (videoIndex % AD_INSERTION_INTERVAL === 0 && !isFirstAdInserted) {
+          
+          const adContainer = createAdElement(); // نستخدم الدالة النظيفة
+          row.appendChild(adContainer);
+          isFirstAdInserted = true;
       }
-    }, { rootMargin: "200px" });
-
-    observer.observe(videoEl);
-
-    // بعد كل AD_FREQUENCY فيديوهات نضيف إعلان
-    if ((idx + 1) % AD_FREQUENCY === 0) {
-      const { wrapper: adEl, containerId } = createAdElement();
-      row.appendChild(adEl);
-
-      // بعد إضافة العنصر إلى DOM نضيف سكربت Adsterra ديناميكياً
-      // نضيف parameter عشوائي عشان يفرض تحميل جديد (cache buster) ويعيد تنفيذ invoke.js
-      setTimeout(() => {
-        const s = document.createElement("script");
-        s.async = true;
-        s.setAttribute("data-cfasync", "false");
-        // نضيف قيمة عشوائية للتأكد أن السكربت يعيد التنفيذ عند كل إضافة
-        s.src = AD_SCRIPT_SRC + (AD_SCRIPT_SRC.includes('?') ? '&' : '?') + 'cb=' + Math.random().toString(36).slice(2);
-        // ملاحظة: قد يتعرف invoke.js على الحاويات تلقائياً، وإلا Adsterra قد يتطلب إعدادات خاصة في لوحة التحكم.
-        document.body.appendChild(s);
-      }, 50);
-    }
-  });
+  }
 
   container.appendChild(title);
   container.appendChild(row);
   document.querySelector("main").appendChild(container);
 }
+
+// ====================================
+// 4. دوال التحكم والتحميل الرئيسية (Main Control)
+// ====================================
 
 function renderAllSections() {
   for (const [sectionName, videos] of allData.entries()) {
@@ -352,12 +371,6 @@ function renderAllSections() {
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
-
-    // تنظيف قبل إعادة البناء (يمنع التكرار لو onValue اتنادى تاني)
-    allData.clear();
-    renderedSections.clear();
-    document.querySelector("main").innerHTML = '';
-
     for (const key in data) {
       const item = data[key];
       if (!item.section || !item.videoId) continue;
@@ -370,30 +383,49 @@ function loadVideos() {
   });
 }
 
+/** دالة نقرة الفيديو: توجيه مباشر وفوري (للتغلب على أي إعلانات متبقية) */
 function handleVideoClick(url, event) {
-  event.preventDefault();
-  const overlay = document.createElement("div");
-  overlay.className = "overlay-ad";
-  overlay.innerHTML = `
-    <div style="margin-top: 1rem;">
-      <img src="ads/ad2.jpg" style="max-width: 90%; max-height: 300px; border-radius: 10px;" />
-    </div>`;
-  document.body.appendChild(overlay);
-  setTimeout(() => window.location.href = url, 2000);
+  event.preventDefault(); 
+  window.location.href = url;
 }
 
+// 💡 يجب إظهار الدالة عالمياً لتتمكن الروابط من الوصول إليها
 window.handleVideoClick = handleVideoClick;
 window.addEventListener("DOMContentLoaded", loadVideos);
 </script>
-
-<!-- Footer & Modals (باقي الملف كما هو) -->
+  
 <footer style="text-align:center; padding: 20px; background: #333; font-size: 14px;">
   <a href="#" onclick="openModal('about')" style="color:white;">من نحن</a> |
   <a href="#" onclick="openModal('privacy')" style="color:white;">سياسة الخصوصية</a>
 </footer>
 
-<!-- (بقيّة الـ modals والـ scripts اللي عندك كما هي) -->
+<div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000088; z-index:999;" onclick="closeModal()"></div>
+
+<div id="modal-about" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:600px; background:#444; color:white; padding:20px; border-radius:10px; z-index:1000;">
+  <h2 style="margin-top:0; color:white;">من نحن</h2>
+  <p>
+    أهلاً بك في منصة <strong>Level Up</strong>، وجهتك العربية نحو تطوير الذات وبناء النفس.<br><br>
+    نؤمن أن المعرفة هي المفتاح الحقيقي للتغيير، وأن كل إنسان يمتلك القدرة على النمو والتحسن إذا توفرت له الأدوات المناسبة.<br>
+    في هذا الموقع نقدم محتوى مميز في مجالات تطوير الذات، زيادة الثقافة، تنمية المهارات، والتعلم الذاتي بطريقة مبسطة وملهمة.<br><br>
+    هدفنا هو أن نكون مصدرًا ثابتًا يساعدك على الارتقاء بحياتك وفكرك خطوة بخطوة.<br>
+    نسعد دائماً بتواصلكم واقتراحاتكم عبر البريد الإلكتروني.
+  </p>
+  <button onclick="closeModal()" style="margin-top:15px; background:white !important; border:none; padding:8px 16px; border-radius:5px; color:#000;">إغلاق</button>
+</div>
+
+<div id="modal-privacy" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:600px; background:#444; color:white; padding:20px; border-radius:10px; z-index:1000;">
+  <h2 style="margin-top:0; color:white;">سياسة الخصوصية</h2>
+  <p>
+    نحن في منصة <strong>Level Up</strong> نحترم خصوصيتك ونتعامل مع بياناتك بأعلى درجات الحذر والمسؤولية.<br><br>
+    - لا نقوم بجمع أي معلومات شخصية عنك إلا إذا قمت بتقديمها بشكل طوعي، مثل عند الاشتراك أو إرسال رسالة.<br>
+    - نحن لا نشارك معلوماتك مع أي جهة خارجية، ويقتصر استخدام البيانات فقط لتحسين تجربتك داخل الموقع.<br>
+    باستخدامك للموقع فإنك توافق على هذه السياسة.
+  </p>
+  <button onclick="closeModal()" style="margin-top:15px; background:white !important; border:none; padding:8px 16px; border-radius:5px; color:#000;">إغلاق</button>
+</div>
+
 <script>
+  // دوال الـ Modal
   function openModal(type) {
     document.getElementById('modal-overlay').style.display = 'block';
     if (type === 'about') {
@@ -402,6 +434,7 @@ window.addEventListener("DOMContentLoaded", loadVideos);
       document.getElementById('modal-privacy').style.display = 'block';
     }
   }
+
   function closeModal() {
     document.getElementById('modal-overlay').style.display = 'none';
     document.getElementById('modal-about').style.display = 'none';
@@ -409,4 +442,4 @@ window.addEventListener("DOMContentLoaded", loadVideos);
   }
 </script>
 </body>
-                                                                                  </html>
+</html>
