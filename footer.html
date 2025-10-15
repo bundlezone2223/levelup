@@ -1,0 +1,29 @@
+<footer style="text-align:center; padding: 20px; background: #333; font-size: 14px;">
+  <a href="#" onclick="openModal('about')" style="color:white;">من نحن</a> |
+  <a href="#" onclick="openModal('privacy')" style="color:white;">سياسة الخصوصية</a>
+</footer>
+
+<div id="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#00000088; z-index:999;" onclick="closeModal()"></div>
+
+<div id="modal-about" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:600px; background:#444; color:white; padding:20px; border-radius:10px; z-index:1000;">
+  <h2 style="margin-top:0; color:white;">من نحن</h2>
+  <p>
+    أهلاً بك في منصة <strong>Level Up</strong>، وجهتك العربية نحو تطوير الذات وبناء النفس.<br><br>
+    نؤمن أن المعرفة هي المفتاح الحقيقي للتغيير، وأن كل إنسان يمتلك القدرة على النمو والتحسن إذا توفرت له الأدوات المناسبة.<br>
+    في هذا الموقع نقدم محتوى مميز في مجالات تطوير الذات، زيادة الثقافة، تنمية المهارات، والتعلم الذاتي بطريقة مبسطة وملهمة.<br><br>
+    هدفنا هو أن نكون مصدرًا ثابتًا يساعدك على الارتقاء بحياتك وفكرك خطوة بخطوة.<br>
+    نسعد دائماً بتواصلكم واقتراحاتكم عبر البريد الإلكتروني.
+  </p>
+  <button onclick="closeModal()" style="margin-top:15px; background:white !important; border:none; padding:8px 16px; border-radius:5px; color:#000;">إغلاق</button>
+</div>
+
+<div id="modal-privacy" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:600px; background:#444; color:white; padding:20px; border-radius:10px; z-index:1000;">
+  <h2 style="margin-top:0; color:white;">سياسة الخصوصية</h2>
+  <p>
+    نحن في منصة <strong>Level Up</strong> نحترم خصوصيتك ونتعامل مع بياناتك بأعلى درجات الحذر والمسؤولية.<br><br>
+    - لا نقوم بجمع أي معلومات شخصية عنك إلا إذا قمت بتقديمها بشكل طوعي، مثل عند الاشتراك أو إرسال رسالة.<br>
+    - نحن لا نشارك معلوماتك مع أي جهة خارجية، ويقتصر استخدام البيانات فقط لتحسين تجربتك داخل الموقع.<br>
+    باستخدامك للموقع فإنك توافق على هذه السياسة.
+  </p>
+  <button onclick="closeModal()" style="margin-top:15px; background:white !important; border:none; padding:8px 16px; border-radius:5px; color:#000;">إغلاق</button>
+</div>
