@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// =====================================
+// ====================================
 // 1. إعدادات وقيم ثابتة
-// =====================================
+// ====================================
 const firebaseConfig = {
   apiKey: "AIzaSyDzoEzH1W6Z1lncab5Se8PObYFp6060oTk",
   authDomain: "levelup-d5f5c.firebaseapp.com",
@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
+
 const AD_INSERTION_INTERVAL = 4;
 
 const app = initializeApp(firebaseConfig);
@@ -22,100 +23,150 @@ const db = getDatabase(app);
 const allData = new Map();
 const renderedSections = new Set();
 
-
-// =====================================
+// ====================================
 // 2. دوال معالجة البيانات
-// =====================================
+// ====================================
 
-async function fetchVideoDetails(videoId) {
-    const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
-    
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${YOUTUBE_API_KEY}`;
-    
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        console.error("فشل جلب تفاصيل الفيديو من يوتيوب. تحقق من المفتاح أو القيود.");
+/** يجلب معلومات الفيديو والقناة من YouTube API */
+async function getVideoData(videoId) {
+  // 🔴 الإضافة والتصحيح: تعريف المفتاح السري المقيد هنا
+  const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
+  
+  try {
+    // الطلب الأول لجلب تفاصيل الفيديو
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
+    if (!res.ok) {
+        console.error("فشل الطلب الأول: المفتاح مقيد أو غير صالح.");
         return null;
     }
+    const data = await res.json();
+    const snippet = data.items?.[0]?.snippet;
+    if (!snippet) return null;
 
-    const data = await response.json();
-    
-    if (data && data.items && data.items.length > 0) {
-        return data.items[0].snippet; 
+    // الطلب الثاني لجلب تفاصيل القناة
+    const channelId = snippet.channelId;
+    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
+    if (!channelRes.ok) {
+        console.error("فشل الطلب الثاني: لا يمكن جلب بيانات القناة.");
+        return {
+          title: snippet.title,
+          channelTitle: snippet.channelTitle,
+          channelThumb: "",
+          channelUrl: `https://www.youtube.com/channel/${channelId}`
+        };
     }
-    
-    return null; 
+    const channelData = await channelRes.json();
+    const channelSnippet = channelData.items?.[0]?.snippet;
+
+    return {
+      title: snippet.title,
+      channelTitle: snippet.channelTitle,
+      channelThumb: channelSnippet?.thumbnails?.default?.url || "",
+      channelUrl: `https://www.youtube.com/channel/${channelId}`
+    };
+  } catch(error) {
+    console.error("حدث خطأ غير متوقع أثناء جلب بيانات يوتيوب:", error);
+    return null;
+  }
 }
 
+// ====================================
+// 3. دوال بناء عناصر الواجهة
+// ====================================
 
-// =====================================
-// 3. دوال إنشاء العناصر
-// =====================================
+/** ينشئ العنصر النائب للفيديو (Shimmer Loading) */
+function createVideoElement() {
+  const el = document.createElement("div");
+  el.className = "video";
+  el.innerHTML = `
+    <a href="#" onclick="event.preventDefault()">
+      <div class="video-thumb-wrapper">
+        <div class="video-thumb loading"></div>
+      </div>
+    </a>
+    <div class="video-info">
+      <div class="channel-thumb loading"></div>
+      <div class="video-title-box">
+        <div class="video-title-row">
+          <div class="video-title loading"></div>
+        </div>
+        <div class="video-subtitle-placeholder loading" style="font-size: 0.75rem; color: #333;">&nbsp;</div>
+      </div>
+    </div>`;
+  return el;
+}
 
+/** ينشئ عنصر إعلان بانر وهمي (Placeholder) */
 function createAdPlaceholder() {
-  const adPlaceholder = document.createElement("div");
-  adPlaceholder.className = "video-container";
-  adPlaceholder.innerHTML = `
-      <div class="video-thumb ad-placeholder" style="display:flex; flex-direction:column; justify-content:center; align-items:center; background-color:#1a1a1a; cursor:default; height:150px;">
-          <h3 style="color:#0ff; margin-bottom: 5px;">مساحة إعلانية</h3>
-          <p style="color:#aaa; font-size:12px;">انقر في أي مكان للمتابعة</p>
-          <script async="async" data-cfasync="false" src="https://groleegni.net/d.js?id=10016668"></script>
-      </div>
+  const adContainer = document.createElement('div');
+  adContainer.className = "ad-box";
+  adContainer.innerHTML = `
+    <div class="ad-container">
+        <p style="color:#777; font-size:0.8rem; padding: 20px;">مكان إعلان البانر الجديد (PropellerAds Native Banner)</p>
+    </div>
   `;
-  return adPlaceholder;
+  return adContainer;
 }
 
-function createVideoElement(sectionName, videoId, videoSnippet) {
-  const videoTitle = videoSnippet.title;
-  const channelTitle = videoSnippet.channelTitle;
-  const thumbnailUrl = videoSnippet.thumbnails.medium.url;
+/** يحدّث عنصر الفيديو بالبيانات الحقيقية */
+async function upgradeVideoElement(videoDiv, videoId) {
+  const info = await getVideoData(videoId);
+  if (!info) return;
 
-  const videoEl = document.createElement("div");
-  videoEl.className = "video-container";
-  videoEl.onclick = () => handleVideoClick(sectionName, videoId);
-  videoEl.innerHTML = `
-      <div class="video-thumb" data-videoid="${videoId}" data-thumbnailurl="${thumbnailUrl}" style="background-image:url('placeholder-image-url.png');">
-          <div class="video-overlay">
-              <h4 class="video-title">${videoTitle}</h4>
-              <p class="channel-title">${channelTitle}</p>
-          </div>
+  videoDiv.innerHTML = `
+    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${videoId}', event)">
+      <div class="video-thumb-wrapper">
+        <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg');"></div>
       </div>
-  `;
-  
-  const observer = new IntersectionObserver(async (entries, obs) => {
-      if (entries[0].isIntersecting) {
-          const target = entries[0].target;
-          const videoId = target.dataset.videoid;
-
-          const thumbEl = target.querySelector(".video-thumb");
-          if (thumbEl) {
-              const thumbnailUrl = thumbEl.dataset.thumbnailurl;
-              thumbEl.style.backgroundImage = `url('${thumbnailUrl}')`; 
-              obs.unobserve(entries[0].target);
-          }
-      }
-  }, { rootMargin: "200px" });
-  observer.observe(videoEl);
-  
-  return videoEl;
+    </a>
+    <div class="video-info">
+      <a href="${info.channelUrl}" target="_blank">
+        <img src="${info.channelThumb}" class="channel-thumb" alt="${info.channelTitle}">
+      </a>
+      <div class="video-title-box">
+        <div class="video-title-row">
+          <div class="video-title">${info.title}</div>
+        </div>
+        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle}</div>
+      </div>
+    </div>`;
 }
 
-function createSection(titleText, videos) {
-  const container = document.createElement("section");
-  const title = document.createElement("h2");
-  title.textContent = titleText;
+/** ينشئ قسم (Section) الفيديوهات ويضيف مكان الإعلان */
+function createSection(sectionName, videos) {
+  const container = document.createElement("div");
+  container.className = "section";
+  container.setAttribute("data-section", sectionName);
+
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = sectionName;
 
   const row = document.createElement("div");
   row.className = "video-row";
-
+  
+  const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
+  
   let videoIndex = 0;
-  for (const video of videos) {
-      const videoEl = createVideoElement(titleText, video.videoId, video.snippet);
+  for (const { videoId } of shuffledVideos) {
+      // 1. إضافة الفيديو العادي
+      const videoEl = createVideoElement();
       row.appendChild(videoEl);
+
+      // استخدام IntersectionObserver لتحميل البيانات عند الاقتراب من الشاشة
+      const observer = new IntersectionObserver(async (entries, obs) => {
+          for (const entry of entries) {
+              if (entry.isIntersecting) {
+                  await upgradeVideoElement(videoEl, videoId);
+                  obs.unobserve(entry.target);
+              }
+          }
+      }, { rootMargin: "200px" });
+      observer.observe(videoEl);
 
       videoIndex++;
 
+      // 2. إدراج مكان إعلان البانر (Placeholder)
       if (videoIndex % AD_INSERTION_INTERVAL === 0) {
           row.appendChild(createAdPlaceholder());
       }
@@ -154,15 +205,11 @@ function loadVideos() {
   });
 }
 
-function handleVideoClick(sectionName, videoId) {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
-    window.open(url, '_blank'); 
+/** دالة نقرة الفيديو: توجيه مباشر وفوري (الإعلان البيني سيعمل تلقائياً قبلها) */
+function handleVideoClick(url, event) {
+  event.preventDefault();
+  window.location.href = url;
 }
 
-// =====================================
-// 5. تهيئة التطبيق
-// =====================================
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadVideos();
-});
+window.handleVideoClick = handleVideoClick;
+window.addEventListener("DOMContentLoaded", loadVideos);
