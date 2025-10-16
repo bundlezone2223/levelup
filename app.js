@@ -14,8 +14,7 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-
-const AD_INSERTION_INTERVAL = 4;
+const AD_INSERTION_INTERVAL = 4; 
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -27,42 +26,28 @@ const renderedSections = new Set();
 // 2. دوال معالجة البيانات
 // ====================================
 
-/** يجلب معلومات الفيديو والقناة من YouTube API */
+/** يجلب معلومات الفيديو من YouTube API (بطلب واحد فقط) */
 async function getVideoData(videoId) {
-  // 🔴 الإضافة والتصحيح: تعريف المفتاح السري المقيد هنا
+  // المفتاح السري المقيد
   const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
   
   try {
-    // الطلب الأول لجلب تفاصيل الفيديو
+    // نطلب فقط بيانات الفيديو (videos?part=snippet)
     const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
     if (!res.ok) {
-        console.error("فشل الطلب الأول: المفتاح مقيد أو غير صالح.");
+        console.error("فشل طلب يوتيوب. تحقق من المفتاح والقيود.");
         return null;
     }
     const data = await res.json();
     const snippet = data.items?.[0]?.snippet;
     if (!snippet) return null;
 
-    // الطلب الثاني لجلب تفاصيل القناة
-    const channelId = snippet.channelId;
-    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
-    if (!channelRes.ok) {
-        console.error("فشل الطلب الثاني: لا يمكن جلب بيانات القناة.");
-        return {
-          title: snippet.title,
-          channelTitle: snippet.channelTitle,
-          channelThumb: "",
-          channelUrl: `https://www.youtube.com/channel/${channelId}`
-        };
-    }
-    const channelData = await channelRes.json();
-    const channelSnippet = channelData.items?.[0]?.snippet;
-
+    // نمرر البيانات المتاحة
     return {
       title: snippet.title,
       channelTitle: snippet.channelTitle,
-      channelThumb: channelSnippet?.thumbnails?.default?.url || "",
-      channelUrl: `https://www.youtube.com/channel/${channelId}`
+      channelThumb: "", // تم تركها فارغة لتجنب الطلب الثاني
+      channelUrl: `https://www.youtube.com/channel/${snippet.channelId}`
     };
   } catch(error) {
     console.error("حدث خطأ غير متوقع أثناء جلب بيانات يوتيوب:", error);
@@ -121,7 +106,7 @@ async function upgradeVideoElement(videoDiv, videoId) {
     </a>
     <div class="video-info">
       <a href="${info.channelUrl}" target="_blank">
-        <img src="${info.channelThumb}" class="channel-thumb" alt="${info.channelTitle}">
+        <div class="channel-thumb" style="background-color: #333; border-radius: 50%;"></div> 
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
@@ -205,7 +190,7 @@ function loadVideos() {
   });
 }
 
-/** دالة نقرة الفيديو: توجيه مباشر وفوري (الإعلان البيني سيعمل تلقائياً قبلها) */
+/** دالة نقرة الفيديو: توجيه مباشر وفوري */
 function handleVideoClick(url, event) {
   event.preventDefault();
   window.location.href = url;
