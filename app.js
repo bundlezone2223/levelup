@@ -14,8 +14,8 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-// 🔑 المفتاح المقيد على *.level2up.online/*
-const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
+// ❌ تم إزالة YOUTUBE_API_KEY ودالة getVideoData
+// 💡 الآن الموقع لا يستهلك حصة YouTube API! 
 const AD_INSERTION_INTERVAL = 4;
 
 const app = initializeApp(firebaseConfig);
@@ -26,36 +26,8 @@ const renderedSections = new Set();
 
 
 // ====================================
-// 2. دوال معالجة البيانات
+// 2. دوال معالجة البيانات (تم إزالة دالة API)
 // ====================================
-
-/** يجلب معلومات الفيديو والقناة من YouTube API (بطلبين: فيديو + أيقونة قناة) */
-async function getVideoData(videoId) {
-  try {
-    // 1. الطلب الأول: لجلب تفاصيل الفيديو الأساسية
-    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
-    const data = await res.json();
-    const snippet = data.items?.[0]?.snippet;
-    if (!snippet) return null;
-
-    // 2. الطلب الثاني: لجلب تفاصيل أيقونة القناة
-    const channelId = snippet.channelId;
-    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
-    const channelData = await channelRes.json();
-    const channelSnippet = channelData.items?.[0]?.snippet;
-
-    return {
-      title: snippet.title,
-      channelTitle: snippet.channelTitle,
-      channelThumb: channelSnippet?.thumbnails?.default?.url || "",
-      channelUrl: `https://www.youtube.com/channel/${channelId}`
-    };
-  } catch (error) {
-    // في حال فشل أحد الطلبين، نرجع null لمنع ظهور الفيديو
-    console.error("حدث خطأ أثناء جلب بيانات يوتيوب (قد يكون بسبب الحصة أو القيود):", error);
-    return null;
-  }
-}
 
 // ====================================
 // 3. دوال بناء عناصر الواجهة
@@ -95,26 +67,25 @@ function createAdPlaceholder() {
   return adContainer;
 }
 
-/** يحدّث عنصر الفيديو بالبيانات الحقيقية */
-async function upgradeVideoElement(videoDiv, videoId) {
-  const info = await getVideoData(videoId);
-  if (!info) return;
+/** يحدّث عنصر الفيديو بالبيانات المخزنة في Firebase */
+async function upgradeVideoElement(videoDiv, info) {
+  if (!info || !info.videoId) return;
 
   videoDiv.innerHTML = `
-    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${videoId}', event)">
+    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
       <div class="video-thumb-wrapper">
-        <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${videoId}/hqdefault.jpg');"></div>
+        <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg');"></div>
       </div>
     </a>
     <div class="video-info">
-      <a href="${info.channelUrl}" target="_blank">
-        <img src="${info.channelThumb}" class="channel-thumb" alt="${info.channelTitle}">
+      <a href="${info.channelUrl || '#'}" target="_blank">
+        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${info.channelTitle || ''}">
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
-          <div class="video-title">${info.title}</div>
+          <div class="video-title">${info.title || 'عنوان غير متوفر'}</div>
         </div>
-        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle}</div>
+        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle || 'قناة غير متوفرة'}</div>
       </div>
     </div>`;
 }
@@ -135,7 +106,10 @@ function createSection(sectionName, videos) {
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
   
   let videoIndex = 0;
-  for (const { videoId } of shuffledVideos) {
+  for (const info of shuffledVideos) { // info هو الآن كائن البيانات الكامل من Firebase
+      // ⚠️ فحص البيانات: لا نعرض الفيديوهات القديمة التي لا تحتوي على بيانات القناة (لأنها ستكون فارغة)
+      if (!info.channelTitle) continue;
+
       // 1. إضافة الفيديو العادي
       const videoEl = createVideoElement();
       row.appendChild(videoEl);
@@ -144,7 +118,8 @@ function createSection(sectionName, videos) {
       const observer = new IntersectionObserver(async (entries, obs) => {
           for (const entry of entries) {
               if (entry.isIntersecting) {
-                  await upgradeVideoElement(videoEl, videoId);
+                  // 💡 الآن نستخدم info مباشرة
+                  await upgradeVideoElement(videoEl, info); 
                   obs.unobserve(entry.target);
               }
           }
@@ -180,13 +155,14 @@ function renderAllSections() {
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
+    // 💡 الآن نحفظ الكائن كاملاً وليس فقط videoId
     for (const key in data) {
       const item = data[key];
       if (!item.section || !item.videoId) continue;
       if (!allData.has(item.section)) {
         allData.set(item.section, []);
       }
-      allData.get(item.section).push({ videoId: item.videoId });
+      allData.get(item.section).push(item);
     }
     renderAllSections();
   });
