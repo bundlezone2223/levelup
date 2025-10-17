@@ -71,6 +71,9 @@ function createAdPlaceholder() {
 async function upgradeVideoElement(videoDiv, info) {
   if (!info || !info.videoId) return;
 
+  // التأكد من وجود عنوان القناة، وإلا استخدام عنوان احتياطي
+  const channelTitle = info.channelTitle || 'قناة غير متوفرة';
+
   videoDiv.innerHTML = `
     <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
       <div class="video-thumb-wrapper">
@@ -79,13 +82,13 @@ async function upgradeVideoElement(videoDiv, info) {
     </a>
     <div class="video-info">
       <a href="${info.channelUrl || '#'}" target="_blank">
-        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${info.channelTitle || ''}">
+        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${channelTitle}">
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
           <div class="video-title">${info.title || 'عنوان غير متوفر'}</div>
         </div>
-        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle || 'قناة غير متوفرة'}</div>
+        <div style="font-size: 0.75rem; color: #aaa;">${channelTitle}</div>
       </div>
     </div>`;
 }
@@ -107,8 +110,9 @@ function createSection(sectionName, videos) {
   
   let videoIndex = 0;
   for (const info of shuffledVideos) { // info هو الآن كائن البيانات الكامل من Firebase
-      // ⚠️ فحص البيانات: لا نعرض الفيديوهات القديمة التي لا تحتوي على بيانات القناة (لأنها ستكون فارغة)
-      if (!info.channelTitle) continue;
+      
+      // 🚨 الحل الأخير: إزالة شرط الفلترة لمنع تجاهل الفيديوهات 
+      // تم إزالة: if (!info.channelTitle) continue;
 
       // 1. إضافة الفيديو العادي
       const videoEl = createVideoElement();
@@ -171,12 +175,10 @@ function loadVideos() {
 /** دالة نقرة الفيديو: توجيه مباشر وفوري */
 function handleVideoClick(url, event) {
   event.preventDefault();
-  // 💡 يمكنك إضافة كود نافذة منبثقة هنا بدلاً من التوجيه المباشر إذا أردت
-  window.location.href = url;
+  window.open(url, '_blank'); // تم التعديل ليفتح الرابط في نافذة جديدة كما هو شائع لمواقع الروابط
 }
 
 window.handleVideoClick = handleVideoClick;
 
-// ❌ تم إزالة window.addEventListener("DOMContentLoaded", loadVideos);
-// ⚠️ يتم الآن تشغيل الدالة مباشرة لضمان تحميلها مع "module"
-loadVideos(); 
+// يتم تشغيل الدالة مباشرة لضمان تحميلها مع "module"
+loadVideos();
