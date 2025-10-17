@@ -171,8 +171,12 @@ function loadVideos() {
 /** دالة نقرة الفيديو: توجيه مباشر وفوري */
 function handleVideoClick(url, event) {
   event.preventDefault();
+  // 💡 يمكنك إضافة كود نافذة منبثقة هنا بدلاً من التوجيه المباشر إذا أردت
   window.location.href = url;
 }
 
 window.handleVideoClick = handleVideoClick;
-window.addEventListener("DOMContentLoaded", loadVideos);
+
+// ❌ تم إزالة window.addEventListener("DOMContentLoaded", loadVideos);
+// ⚠️ يتم الآن تشغيل الدالة مباشرة لضمان تحميلها مع "module"
+loadVideos(); 
