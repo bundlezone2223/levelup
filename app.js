@@ -14,7 +14,9 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-const AD_INSERTION_INTERVAL = 4; 
+// 🔑 المفتاح المقيد الآن يعمل على نطاق *.level2up.online/*
+const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
+const AD_INSERTION_INTERVAL = 4;
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -22,35 +24,37 @@ const db = getDatabase(app);
 const allData = new Map();
 const renderedSections = new Set();
 
+
 // ====================================
 // 2. دوال معالجة البيانات
 // ====================================
 
-/** يجلب معلومات الفيديو من YouTube API (بطلب واحد فقط) */
+/** يجلب معلومات الفيديو الأساسية بطلب واحد لتوفير الحصة */
 async function getVideoData(videoId) {
-  // المفتاح السري المقيد
-  const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
-  
   try {
-    // نطلب فقط بيانات الفيديو (videos?part=snippet)
+    // 💡 طلب واحد فقط: يجلب معلومات الفيديو الأساسية (العنوان والقناة)
     const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
+    
+    // فحص حالة الاستجابة
     if (!res.ok) {
-        console.error("فشل طلب يوتيوب. تحقق من المفتاح والقيود.");
+        console.error("فشل طلب يوتيوب (الرمز: " + res.status + "). قد يكون بسبب الحصة.");
         return null;
     }
+    
     const data = await res.json();
     const snippet = data.items?.[0]?.snippet;
     if (!snippet) return null;
 
-    // نمرر البيانات المتاحة
+    // إرجاع البيانات المطلوبة فقط
     return {
       title: snippet.title,
       channelTitle: snippet.channelTitle,
-      channelThumb: "", // تم تركها فارغة لتجنب الطلب الثاني
+      // ⚠️ تم ترك أيقونة القناة فارغة لتجنب الطلب الثاني المزدوج
+      channelThumb: "", 
       channelUrl: `https://www.youtube.com/channel/${snippet.channelId}`
     };
-  } catch(error) {
-    console.error("حدث خطأ غير متوقع أثناء جلب بيانات يوتيوب:", error);
+  } catch (error) {
+    console.error("حدث خطأ غير متوقع:", error);
     return null;
   }
 }
