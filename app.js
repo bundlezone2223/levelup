@@ -14,7 +14,7 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-// 🔑 المفتاح المقيد الآن يعمل على نطاق *.level2up.online/*
+// 🔑 المفتاح المقيد على *.level2up.online/*
 const YOUTUBE_API_KEY = "AIzaSyAeZ8GxeJ04NjKGFx7ABeq8khEkdAnvuVk"; 
 const AD_INSERTION_INTERVAL = 4;
 
@@ -29,32 +29,30 @@ const renderedSections = new Set();
 // 2. دوال معالجة البيانات
 // ====================================
 
-/** يجلب معلومات الفيديو الأساسية بطلب واحد لتوفير الحصة */
+/** يجلب معلومات الفيديو والقناة من YouTube API (بطلبين: فيديو + أيقونة قناة) */
 async function getVideoData(videoId) {
   try {
-    // 💡 طلب واحد فقط: يجلب معلومات الفيديو الأساسية (العنوان والقناة)
+    // 1. الطلب الأول: لجلب تفاصيل الفيديو الأساسية
     const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`);
-    
-    // فحص حالة الاستجابة
-    if (!res.ok) {
-        console.error("فشل طلب يوتيوب (الرمز: " + res.status + "). قد يكون بسبب الحصة.");
-        return null;
-    }
-    
     const data = await res.json();
     const snippet = data.items?.[0]?.snippet;
     if (!snippet) return null;
 
-    // إرجاع البيانات المطلوبة فقط
+    // 2. الطلب الثاني: لجلب تفاصيل أيقونة القناة
+    const channelId = snippet.channelId;
+    const channelRes = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`);
+    const channelData = await channelRes.json();
+    const channelSnippet = channelData.items?.[0]?.snippet;
+
     return {
       title: snippet.title,
       channelTitle: snippet.channelTitle,
-      // ⚠️ تم ترك أيقونة القناة فارغة لتجنب الطلب الثاني المزدوج
-      channelThumb: "", 
-      channelUrl: `https://www.youtube.com/channel/${snippet.channelId}`
+      channelThumb: channelSnippet?.thumbnails?.default?.url || "",
+      channelUrl: `https://www.youtube.com/channel/${channelId}`
     };
   } catch (error) {
-    console.error("حدث خطأ غير متوقع:", error);
+    // في حال فشل أحد الطلبين، نرجع null لمنع ظهور الفيديو
+    console.error("حدث خطأ أثناء جلب بيانات يوتيوب (قد يكون بسبب الحصة أو القيود):", error);
     return null;
   }
 }
@@ -110,7 +108,7 @@ async function upgradeVideoElement(videoDiv, videoId) {
     </a>
     <div class="video-info">
       <a href="${info.channelUrl}" target="_blank">
-        <div class="channel-thumb" style="background-color: #333; border-radius: 50%;"></div> 
+        <img src="${info.channelThumb}" class="channel-thumb" alt="${info.channelTitle}">
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
