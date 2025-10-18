@@ -14,9 +14,8 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-// ❌ تم إزالة YOUTUBE_API_KEY ودالة getVideoData
-// 💡 الآن الموقع لا يستهلك حصة YouTube API! 
-const AD_INSERTION_INTERVAL = 4;
+
+const AD_INSERTION_INTERVAL = 4; 
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -26,11 +25,7 @@ const renderedSections = new Set();
 
 
 // ====================================
-// 2. دوال معالجة البيانات (تم إزالة دالة API)
-// ====================================
-
-// ====================================
-// 3. دوال بناء عناصر الواجهة
+// 2. دوال بناء عناصر الواجهة
 // ====================================
 
 /** ينشئ العنصر النائب للفيديو (Shimmer Loading) */
@@ -55,24 +50,23 @@ function createVideoElement() {
   return el;
 }
 
-/** ينشئ عنصر إعلان بانر وهمي (Placeholder) */
+/** ينشئ عنصر إعلان Native Banner حقيقي */
 function createAdPlaceholder() {
   const adContainer = document.createElement('div');
-  adContainer.className = "ad-box";
+  adContainer.className = "ad-box"; // احتفظ بالكلاس لتطبيق تنسيق الصفوف
+
+  // 💡 هنا يتم وضع كود عرض الإعلان Native Banner الحقيقي
+  // data-zone 10054500 مأخوذ من ملف Native ad.txt
   adContainer.innerHTML = `
-    <div class="ad-container">
-        <p style="color:#777; font-size:0.8rem; padding: 20px;">مكان إعلان البانر الجديد (PropellerAds Native Banner)</p>
-    </div>
+    <div class="monetag-native-ad" data-zone="10054500" style="width: 100%;"></div>
   `;
   return adContainer;
 }
 
 /** يحدّث عنصر الفيديو بالبيانات المخزنة في Firebase */
 async function upgradeVideoElement(videoDiv, info) {
+// ... (بقية الكود لم يتغير)
   if (!info || !info.videoId) return;
-
-  // التأكد من وجود عنوان القناة، وإلا استخدام عنوان احتياطي
-  const channelTitle = info.channelTitle || 'قناة غير متوفرة';
 
   videoDiv.innerHTML = `
     <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
@@ -82,13 +76,13 @@ async function upgradeVideoElement(videoDiv, info) {
     </a>
     <div class="video-info">
       <a href="${info.channelUrl || '#'}" target="_blank">
-        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${channelTitle}">
+        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${info.channelTitle || ''}">
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
           <div class="video-title">${info.title || 'عنوان غير متوفر'}</div>
         </div>
-        <div style="font-size: 0.75rem; color: #aaa;">${channelTitle}</div>
+        <div style="font-size: 0.75rem; color: #aaa;">${info.channelTitle || 'قناة غير متوفرة'}</div>
       </div>
     </div>`;
 }
@@ -110,9 +104,8 @@ function createSection(sectionName, videos) {
   
   let videoIndex = 0;
   for (const info of shuffledVideos) { // info هو الآن كائن البيانات الكامل من Firebase
-      
-      // 🚨 الحل الأخير: إزالة شرط الفلترة لمنع تجاهل الفيديوهات 
-      // تم إزالة: if (!info.channelTitle) continue;
+      // ⚠️ فحص البيانات: لا نعرض الفيديوهات التي لا تحتوي على بيانات القناة (لأنها قديمة)
+      if (!info.channelTitle) continue;
 
       // 1. إضافة الفيديو العادي
       const videoEl = createVideoElement();
@@ -132,8 +125,9 @@ function createSection(sectionName, videos) {
 
       videoIndex++;
 
-      // 2. إدراج مكان إعلان البانر (Placeholder)
-      if (videoIndex % AD_INSERTION_INTERVAL === 0) {
+      // 2. إدراج مكان إعلان البانر (Placeholder) - تم التعديل هنا ليكون عشوائياً
+      // بدلاً من الظهور الثابت كل 4 فيديوهات، سيظهر الإعلان بفرصة 25% (عشوائي)
+      if (Math.random() < 0.25) { 
           row.appendChild(createAdPlaceholder());
       }
   }
@@ -144,10 +138,11 @@ function createSection(sectionName, videos) {
 }
 
 // ====================================
-// 4. دوال التحكم والتحميل الرئيسية
+// 3. دوال التحكم والتحميل الرئيسية
 // ====================================
 
 function renderAllSections() {
+// ... (بقية الكود لم يتغير)
   for (const [sectionName, videos] of allData.entries()) {
     if (!renderedSections.has(sectionName)) {
       createSection(sectionName, videos);
@@ -157,9 +152,10 @@ function renderAllSections() {
 }
 
 function loadVideos() {
+// ... (بقية الكود لم يتغير)
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
-    // 💡 الآن نحفظ الكائن كاملاً وليس فقط videoId
+    // 💡 الآن نحفظ الكائن كاملاً (بما فيه العنوان والأيقونة)
     for (const key in data) {
       const item = data[key];
       if (!item.section || !item.videoId) continue;
@@ -175,10 +171,8 @@ function loadVideos() {
 /** دالة نقرة الفيديو: توجيه مباشر وفوري */
 function handleVideoClick(url, event) {
   event.preventDefault();
-  window.open(url, '_blank'); // تم التعديل ليفتح الرابط في نافذة جديدة كما هو شائع لمواقع الروابط
+  window.location.href = url;
 }
 
 window.handleVideoClick = handleVideoClick;
-
-// يتم تشغيل الدالة مباشرة لضمان تحميلها مع "module"
-loadVideos();
+window.addEventListener("DOMContentLoaded", loadVideos);
