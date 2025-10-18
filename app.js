@@ -16,7 +16,8 @@ const firebaseConfig = {
 
 // ❌ تم إزالة YOUTUBE_API_KEY ودالة getVideoData
 // 💡 الآن الموقع لا يستهلك حصة YouTube API! 
-const AD_INSERTION_INTERVAL = 4;
+// تم التعديل: إعلان لكل 8 فيديوهات تقريباً لتحقيق نسبة 12% (1/0.12 = 8.33)
+const AD_INSERTION_INTERVAL = 8; 
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -55,13 +56,13 @@ function createVideoElement() {
   return el;
 }
 
-/** ينشئ عنصر إعلان بانر وهمي (Placeholder) */
+/** ينشئ عنصر إعلان Native Banner */
 function createAdPlaceholder() {
   const adContainer = document.createElement('div');
   adContainer.className = "ad-box";
   adContainer.innerHTML = `
-    <div class="ad-container">
-        <p style="color:#777; font-size:0.8rem; padding: 20px;">مكان إعلان البانر الجديد (PropellerAds Native Banner)</p>
+    <div class="ad-container" style="display: block;">
+        <div id="container-10054500"></div>
     </div>
   `;
   return adContainer;
@@ -108,35 +109,43 @@ function createSection(sectionName, videos) {
   
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
   
-  let videoIndex = 0;
-  for (const info of shuffledVideos) { // info هو الآن كائن البيانات الكامل من Firebase
-      
-      // 🚨 الحل الأخير: إزالة شرط الفلترة لمنع تجاهل الفيديوهات 
-      // تم إزالة: if (!info.channelTitle) continue;
-
-      // 1. إضافة الفيديو العادي
-      const videoEl = createVideoElement();
-      row.appendChild(videoEl);
-
-      // استخدام IntersectionObserver لتحميل البيانات عند الاقتراب من الشاشة
-      const observer = new IntersectionObserver(async (entries, obs) => {
-          for (const entry of entries) {
-              if (entry.isIntersecting) {
-                  // 💡 الآن نستخدم info مباشرة
-                  await upgradeVideoElement(videoEl, info); 
-                  obs.unobserve(entry.target);
-              }
-          }
-      }, { rootMargin: "200px" });
-      observer.observe(videoEl);
-
-      videoIndex++;
-
-      // 2. إدراج مكان إعلان البانر (Placeholder)
-      if (videoIndex % AD_INSERTION_INTERVAL === 0) {
-          row.appendChild(createAdPlaceholder());
-      }
+  // 💡 التعديل: حساب عدد الإعلانات المطلوب إدراجها (12% من عدد الفيديوهات في القسم)
+  const numAds = Math.floor(shuffledVideos.length * 0.12); 
+  const totalElements = shuffledVideos.length + numAds;
+  
+  // 💡 التعديل: دمج الفيديوهات والإعلانات في قائمة واحدة وإجراء خلط عشوائي
+  let combinedElements = [...shuffledVideos];
+  for (let i = 0; i < numAds; i++) {
+    combinedElements.push('AD'); // استخدام سلسلة نصية كدليل للإعلان
   }
+  
+  // خلط العناصر بالكامل
+  combinedElements.sort(() => Math.random() - 0.5);
+
+  combinedElements.forEach(element => {
+      if (element === 'AD') {
+          // 1. إدراج عنصر الإعلان
+          row.appendChild(createAdPlaceholder());
+      } else {
+          // 2. إدراج عنصر الفيديو
+          const info = element;
+          const videoEl = createVideoElement();
+          row.appendChild(videoEl);
+
+          // استخدام IntersectionObserver لتحميل البيانات عند الاقتراب من الشاشة
+          const observer = new IntersectionObserver(async (entries, obs) => {
+              for (const entry of entries) {
+                  if (entry.isIntersecting) {
+                      // 💡 الآن نستخدم info مباشرة
+                      await upgradeVideoElement(videoEl, info); 
+                      obs.unobserve(entry.target);
+                  }
+              }
+          }, { rootMargin: "200px" });
+          observer.observe(videoEl);
+      }
+  });
+
 
   container.appendChild(title);
   container.appendChild(row);
