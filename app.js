@@ -14,10 +14,9 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-// ❌ تم إزالة YOUTUBE_API_KEY ودالة getVideoData
-// 💡 الآن الموقع لا يستهلك حصة YouTube API! 
-// تم التعديل: إعلان لكل 8 فيديوهات تقريباً لتحقيق نسبة 12% (1/0.12 = 8.33)
-const AD_INSERTION_INTERVAL = 8; 
+// 💡 النسبة المطلوبة للإعلان (12%)
+const AD_PERCENTAGE = 0.12; 
+const AD_ZONE_ID = '10054500';
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -56,15 +55,39 @@ function createVideoElement() {
   return el;
 }
 
-/** ينشئ عنصر إعلان Native Banner */
+/** 💡 تم التعديل: ينشئ عنصر إعلان Native Banner ويضمن تحميل السكريبت الإعلاني */
 function createAdPlaceholder() {
   const adContainer = document.createElement('div');
   adContainer.className = "ad-box";
+  
+  // نضع الحاوية الأساسية للإعلان
   adContainer.innerHTML = `
     <div class="ad-container" style="display: block;">
-        <div id="container-10054500"></div>
+        <div id="container-${AD_ZONE_ID}" class="native-ad-placeholder"></div>
     </div>
   `;
+  
+  // لضمان تحميل الإعلان داخل الحاوية الجديدة التي تم إنشاؤها عبر JavaScript،
+  // يجب أن ننشئ سكريبت التشغيل ونضيفه بعد إضافة العنصر إلى DOM.
+  // نستخدم setTimeout لضمان أن الحاوية قد تم إدراجها.
+  
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        obs.unobserve(entry.target);
+        
+        const script = document.createElement('script');
+        script.dataset.zone = AD_ZONE_ID;
+        script.src = 'https://becorsolaom.com/tag.min.js';
+        
+        // نضيف السكريبت إلى عنصر الإعلان نفسه لضمان تنفيذه في السياق الصحيح
+        entry.target.appendChild(script);
+      }
+    });
+  }, { rootMargin: "0px" });
+
+  observer.observe(adContainer);
+
   return adContainer;
 }
 
@@ -94,7 +117,7 @@ async function upgradeVideoElement(videoDiv, info) {
     </div>`;
 }
 
-/** ينشئ قسم (Section) الفيديوهات ويضيف مكان الإعلان */
+/** ينشئ قسم (Section) الفيديوهات ويضيف مكان الإعلان بشكل عشوائي وبنسبة 12% */
 function createSection(sectionName, videos) {
   const container = document.createElement("div");
   container.className = "section";
@@ -107,23 +130,23 @@ function createSection(sectionName, videos) {
   const row = document.createElement("div");
   row.className = "video-row";
   
+  // خلط قائمة الفيديوهات الأساسية
   const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
   
-  // 💡 التعديل: حساب عدد الإعلانات المطلوب إدراجها (12% من عدد الفيديوهات في القسم)
-  const numAds = Math.floor(shuffledVideos.length * 0.12); 
-  const totalElements = shuffledVideos.length + numAds;
+  // حساب عدد الإعلانات المطلوب إدراجها (12% من عدد الفيديوهات في القسم)
+  const numAds = Math.floor(shuffledVideos.length * AD_PERCENTAGE); 
   
-  // 💡 التعديل: دمج الفيديوهات والإعلانات في قائمة واحدة وإجراء خلط عشوائي
+  // دمج الفيديوهات والإعلانات في قائمة واحدة
   let combinedElements = [...shuffledVideos];
   for (let i = 0; i < numAds; i++) {
-    combinedElements.push('AD'); // استخدام سلسلة نصية كدليل للإعلان
+    combinedElements.push('AD_PLACEHOLDER'); // استخدام دليل للإعلان
   }
   
-  // خلط العناصر بالكامل
+  // خلط العناصر بالكامل لتوزيعها عشوائياً
   combinedElements.sort(() => Math.random() - 0.5);
 
   combinedElements.forEach(element => {
-      if (element === 'AD') {
+      if (element === 'AD_PLACEHOLDER') {
           // 1. إدراج عنصر الإعلان
           row.appendChild(createAdPlaceholder());
       } else {
@@ -132,11 +155,10 @@ function createSection(sectionName, videos) {
           const videoEl = createVideoElement();
           row.appendChild(videoEl);
 
-          // استخدام IntersectionObserver لتحميل البيانات عند الاقتراب من الشاشة
+          // استخدام IntersectionObserver لتحميل بيانات الفيديو عند الاقتراب من الشاشة
           const observer = new IntersectionObserver(async (entries, obs) => {
               for (const entry of entries) {
                   if (entry.isIntersecting) {
-                      // 💡 الآن نستخدم info مباشرة
                       await upgradeVideoElement(videoEl, info); 
                       obs.unobserve(entry.target);
                   }
@@ -168,7 +190,7 @@ function renderAllSections() {
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
-    // 💡 الآن نحفظ الكائن كاملاً وليس فقط videoId
+    // الآن نحفظ الكائن كاملاً وليس فقط videoId
     for (const key in data) {
       const item = data[key];
       if (!item.section || !item.videoId) continue;
@@ -184,10 +206,10 @@ function loadVideos() {
 /** دالة نقرة الفيديو: توجيه مباشر وفوري */
 function handleVideoClick(url, event) {
   event.preventDefault();
-  window.open(url, '_blank'); // تم التعديل ليفتح الرابط في نافذة جديدة كما هو شائع لمواقع الروابط
+  window.open(url, '_blank'); 
 }
 
 window.handleVideoClick = handleVideoClick;
 
-// يتم تشغيل الدالة مباشرة لضمان تحميلها مع "module"
+// يتم تشغيل الدالة مباشرة
 loadVideos();
