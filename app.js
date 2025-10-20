@@ -16,7 +16,7 @@ const firebaseConfig = {
 
 // 💡 النسبة المطلوبة للإعلان (12%)
 const AD_PERCENTAGE = 0.12; 
-const AD_ZONE_ID = '10054500';
+const AD_ZONE_ID = '10054500'; // معرف المنطقة الإعلانية لـ Native Banner
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -55,7 +55,7 @@ function createVideoElement() {
   return el;
 }
 
-/** 💡 تم التعديل: ينشئ عنصر إعلان Native Banner ويضمن تحميل السكريبت الإعلاني */
+/** 💡 تم التعديل النهائي: ينشئ عنصر إعلان Native Banner ويضمن تحميل السكريبت الإعلاني */
 function createAdPlaceholder() {
   const adContainer = document.createElement('div');
   adContainer.className = "ad-box";
@@ -67,26 +67,19 @@ function createAdPlaceholder() {
     </div>
   `;
   
-  // لضمان تحميل الإعلان داخل الحاوية الجديدة التي تم إنشاؤها عبر JavaScript،
-  // يجب أن ننشئ سكريبت التشغيل ونضيفه بعد إضافة العنصر إلى DOM.
-  // نستخدم setTimeout لضمان أن الحاوية قد تم إدراجها.
-  
-  const observer = new IntersectionObserver((entries, obs) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        obs.unobserve(entry.target);
-        
+  // نستخدم setTimeout لضمان أن الحاوية قد تم إدراجها في شجرة العناصر (DOM) 
+  // قبل محاولة تشغيل السكريبت لملئها بالإعلان.
+  setTimeout(() => {
+    // نتحقق أولاً لمنع تكرار إضافة السكريبت إلى الـ body إذا كان قد أضيف بالفعل
+    if (!document.querySelector(`script[data-zone="${AD_ZONE_ID}"]`)) {
         const script = document.createElement('script');
         script.dataset.zone = AD_ZONE_ID;
         script.src = 'https://becorsolaom.com/tag.min.js';
         
-        // نضيف السكريبت إلى عنصر الإعلان نفسه لضمان تنفيذه في السياق الصحيح
-        entry.target.appendChild(script);
-      }
-    });
-  }, { rootMargin: "0px" });
-
-  observer.observe(adContainer);
+        // نضيف السكريبت مباشرة إلى نهاية الجسم (Body)
+        document.body.appendChild(script);
+    }
+  }, 100); 
 
   return adContainer;
 }
