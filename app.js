@@ -14,19 +14,14 @@ const firebaseConfig = {
   appId: "1:189128717624:web:5a36bb4393eef1dca17dcd"
 };
 
-// 💡 النسبة المطلوبة للإعلان (12%)
-const AD_PERCENTAGE = 0.12; 
-const AD_ZONE_ID = '10054500'; // معرف المنطقة الإعلانية لـ Native Banner
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const allData = new Map();
 const renderedSections = new Set();
 
-
 // ====================================
-// 2. دوال معالجة البيانات (تم إزالة دالة API)
+// 2. دوال معالجة البيانات 
 // ====================================
 
 // ====================================
@@ -55,62 +50,60 @@ function createVideoElement() {
   return el;
 }
 
-/** 💡 تم التعديل النهائي: ينشئ عنصر إعلان Native Banner ويضمن تحميل السكريبت الإعلاني */
-function createAdPlaceholder() {
-  const adContainer = document.createElement('div');
-  adContainer.className = "ad-box";
-  
-  // نضع الحاوية الأساسية للإعلان
-  adContainer.innerHTML = `
-    <div class="ad-container" style="display: block;">
-        <div id="container-${AD_ZONE_ID}" class="native-ad-placeholder"></div>
-    </div>
-  `;
-  
-  // نستخدم setTimeout لضمان أن الحاوية قد تم إدراجها في شجرة العناصر (DOM) 
-  // قبل محاولة تشغيل السكريبت لملئها بالإعلان.
-  setTimeout(() => {
-    // نتحقق أولاً لمنع تكرار إضافة السكريبت إلى الـ body إذا كان قد أضيف بالفعل
-    if (!document.querySelector(`script[data-zone="${AD_ZONE_ID}"]`)) {
-        const script = document.createElement('script');
-        script.dataset.zone = AD_ZONE_ID;
-        script.src = 'https://becorsolaom.com/tag.min.js';
-        
-        // نضيف السكريبت مباشرة إلى نهاية الجسم (Body)
-        document.body.appendChild(script);
-    }
-  }, 100); 
-
-  return adContainer;
-}
-
-/** يحدّث عنصر الفيديو بالبيانات المخزنة في Firebase */
+/** 🚨 الحل القاطع: التحقق من وجود عنوان الفيديو، اسم القناة، وصورة القناة */
 async function upgradeVideoElement(videoDiv, info) {
-  if (!info || !info.videoId) return;
+  if (!info || !info.videoId) {
+    videoDiv.remove(); 
+    return;
+  }
+  
+  // 1. التحقق القسري: إذا كان أي من هذه الحقول مفقوداً أو فارغاً، يتم حذف الفيديو.
+  // ملاحظة المستخدم: "تم حذف النص الموجود علي صورة القناة واسم القناة"
+  const isVideoDataMissing = 
+      !info.title || info.title.trim() === '' || 
+      !info.channelTitle || info.channelTitle.trim() === '' || 
+      !info.channelThumb || info.channelThumb.trim() === ''; 
 
-  // التأكد من وجود عنوان القناة، وإلا استخدام عنوان احتياطي
-  const channelTitle = info.channelTitle || 'قناة غير متوفرة';
-
+  if (isVideoDataMissing) {
+    videoDiv.remove(); 
+    
+    // خطوة تنظيف إضافية: إزالة القسم إذا أصبح فارغاً
+    const row = videoDiv.closest('.video-row');
+    if (row) {
+        setTimeout(() => {
+            if (row.children.length === 0) {
+                const section = row.closest('.section');
+                if (section) section.remove();
+            }
+        }, 0);
+    }
+    return;
+  }
+  
+  // 2. إذا كانت البيانات متوفرة، يتم عرض الفيديو بشكل طبيعي
+  const displayThumbUrl = `https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg`;
+  const channelTitle = info.channelTitle; // الآن نعرف أنه ليس فارغاً
+  
   videoDiv.innerHTML = `
     <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
       <div class="video-thumb-wrapper">
-        <div class="video-thumb" style="background-image: url('https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg');"></div>
+        <div class="video-thumb" style="background-image: url('${displayThumbUrl}');"></div>
       </div>
     </a>
     <div class="video-info">
       <a href="${info.channelUrl || '#'}" target="_blank">
-        <img src="${info.channelThumb || ''}" class="channel-thumb" alt="${channelTitle}">
+        <img src="${info.channelThumb}" class="channel-thumb" alt="${channelTitle}">
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
-          <div class="video-title">${info.title || 'عنوان غير متوفر'}</div>
+          <div class="video-title">${info.title}</div>
         </div>
         <div style="font-size: 0.75rem; color: #aaa;">${channelTitle}</div>
       </div>
     </div>`;
 }
 
-/** ينشئ قسم (Section) الفيديوهات ويضيف مكان الإعلان بشكل عشوائي وبنسبة 12% */
+/** ينشئ قسم (Section) الفيديوهات */
 function createSection(sectionName, videos) {
   const container = document.createElement("div");
   container.className = "section";
@@ -124,41 +117,26 @@ function createSection(sectionName, videos) {
   row.className = "video-row";
   
   // خلط قائمة الفيديوهات الأساسية
-  const shuffledVideos = [...videos].sort(() => Math.random() - 0.5);
+  const elementsToRender = [...videos].sort(() => Math.random() - 0.5);
   
-  // حساب عدد الإعلانات المطلوب إدراجها (12% من عدد الفيديوهات في القسم)
-  const numAds = Math.floor(shuffledVideos.length * AD_PERCENTAGE); 
-  
-  // دمج الفيديوهات والإعلانات في قائمة واحدة
-  let combinedElements = [...shuffledVideos];
-  for (let i = 0; i < numAds; i++) {
-    combinedElements.push('AD_PLACEHOLDER'); // استخدام دليل للإعلان
-  }
-  
-  // خلط العناصر بالكامل لتوزيعها عشوائياً
-  combinedElements.sort(() => Math.random() - 0.5);
+  elementsToRender.forEach(element => {
+      // 1. إدراج عنصر الفيديو 
+      const info = element;
+      const videoEl = createVideoElement();
+      row.appendChild(videoEl);
 
-  combinedElements.forEach(element => {
-      if (element === 'AD_PLACEHOLDER') {
-          // 1. إدراج عنصر الإعلان
-          row.appendChild(createAdPlaceholder());
-      } else {
-          // 2. إدراج عنصر الفيديو
-          const info = element;
-          const videoEl = createVideoElement();
-          row.appendChild(videoEl);
-
-          // استخدام IntersectionObserver لتحميل بيانات الفيديو عند الاقتراب من الشاشة
-          const observer = new IntersectionObserver(async (entries, obs) => {
-              for (const entry of entries) {
-                  if (entry.isIntersecting) {
-                      await upgradeVideoElement(videoEl, info); 
-                      obs.unobserve(entry.target);
-                  }
+      // استخدام IntersectionObserver لتحميل بيانات الفيديو عند الاقتراب من الشاشة
+      const observer = new IntersectionObserver(async (entries, obs) => {
+          for (const entry of entries) {
+              if (entry.isIntersecting) {
+                  // هنا يتم التحقق من التوفر وإزالة العنصر إذا كان غير متاح
+                  await upgradeVideoElement(videoEl, info); 
+                  obs.unobserve(entry.target);
               }
-          }, { rootMargin: "200px" });
-          observer.observe(videoEl);
-      }
+          }
+      }, { rootMargin: "200px" });
+      observer.observe(videoEl);
+      
   });
 
 
@@ -172,8 +150,13 @@ function createSection(sectionName, videos) {
 // ====================================
 
 function renderAllSections() {
+  // نقوم بتنظيف جميع الأقسام المعروضة حالياً وإعادة إنشائها لضمان إزالة الأقسام الفارغة
+  document.querySelectorAll('.section').forEach(s => s.remove());
+  renderedSections.clear();
+  
   for (const [sectionName, videos] of allData.entries()) {
-    if (!renderedSections.has(sectionName)) {
+    // شرط: لا نعرض القسم إذا لم يكن فيه فيديوهات متاحة في البداية
+    if (videos.length > 0 && !renderedSections.has(sectionName)) {
       createSection(sectionName, videos);
       renderedSections.add(sectionName);
     }
@@ -183,10 +166,15 @@ function renderAllSections() {
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
-    // الآن نحفظ الكائن كاملاً وليس فقط videoId
+    // تنظيف البيانات الحالية قبل الإضافة
+    allData.clear();
+    
     for (const key in data) {
       const item = data[key];
-      if (!item.section || !item.videoId) continue;
+      
+      // الشرط: تجاهل الفيديوهات التي لا تحتوي على قسم أو معرف فيديو
+      if (!item.section || !item.videoId) continue; 
+      
       if (!allData.has(item.section)) {
         allData.set(item.section, []);
       }
