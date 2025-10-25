@@ -71,12 +71,17 @@
       border-radius: 6px;
       overflow: hidden;
     }
+    
+    /* 💥 التعديل ليدعم وسم <img> بـ alt و object-fit */
     .video-thumb {
       width: 100%;
-      aspect-ratio: 16 / 9;
-      background-size: cover;
-      background-position: center;
+      height: auto; 
+      display: block; 
+      aspect-ratio: 16 / 9; 
+      object-fit: cover; 
     }
+    /* ------------------------------------- */
+
     .video-info {
       display: flex;
       align-items: center;
@@ -135,7 +140,7 @@
     }
 
     /* ==================================== */
-    /* Shimmer Animation (اللمعة) - تم الاحتفاظ بها كما كانت */
+    /* Shimmer Animation (اللمعة) */
     /* ==================================== */
     @keyframes shimmer {
       0% { background-position: -200% 0; }
