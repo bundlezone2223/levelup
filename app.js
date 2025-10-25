@@ -58,7 +58,6 @@ async function upgradeVideoElement(videoDiv, info) {
   }
   
   // 1. التحقق القسري: إذا كان أي من هذه الحقول مفقوداً أو فارغاً، يتم حذف الفيديو.
-  // ملاحظة المستخدم: "تم حذف النص الموجود علي صورة القناة واسم القناة"
   const isVideoDataMissing = 
       !info.title || info.title.trim() === '' || 
       !info.channelTitle || info.channelTitle.trim() === '' || 
@@ -84,10 +83,13 @@ async function upgradeVideoElement(videoDiv, info) {
   const displayThumbUrl = `https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg`;
   const channelTitle = info.channelTitle; // الآن نعرف أنه ليس فارغاً
   
+  // 💥 التعديل هنا: استخدام img مع alt قوي لـ SEO الأقوى 💥
   videoDiv.innerHTML = `
     <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
       <div class="video-thumb-wrapper">
-        <div class="video-thumb" style="background-image: url('${displayThumbUrl}');"></div>
+        <img src="${displayThumbUrl}"
+             class="video-thumb" 
+             alt="${info.title} - ${channelTitle}"> 
       </div>
     </a>
     <div class="video-info">
