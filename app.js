@@ -81,9 +81,8 @@ async function upgradeVideoElement(videoDiv, info) {
   
   // 2. إذا كانت البيانات متوفرة، يتم عرض الفيديو بشكل طبيعي
   const displayThumbUrl = `https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg`;
-  const channelTitle = info.channelTitle; // الآن نعرف أنه ليس فارغاً
+  const channelTitle = info.channelTitle; 
   
-  // 💥 التعديل هنا: استخدام img مع alt قوي لـ SEO الأقوى 💥
   videoDiv.innerHTML = `
     <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
       <div class="video-thumb-wrapper">
@@ -98,8 +97,7 @@ async function upgradeVideoElement(videoDiv, info) {
       </a>
       <div class="video-title-box">
         <div class="video-title-row">
-          <div class="video-title">${info.title}</div>
-        </div>
+          <h3 class="video-title">${info.title}</h3> </div>
         <div style="font-size: 0.75rem; color: #aaa;">${channelTitle}</div>
       </div>
     </div>`;
@@ -111,7 +109,7 @@ function createSection(sectionName, videos) {
   container.className = "section";
   container.setAttribute("data-section", sectionName);
 
-  const title = document.createElement("div");
+  const title = document.createElement("h2"); // 🚨 التعديل لتطبيق <h2> لـ SEO
   title.className = "section-title";
   title.textContent = sectionName;
 
