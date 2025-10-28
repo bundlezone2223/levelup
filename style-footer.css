@@ -1,0 +1,162 @@
+    /* ==================================== */
+    /* تنسيقات Footer الحديثة */
+    /* ==================================== */
+    .modern-footer {
+      background-color: #111;
+      color: #ccc;
+      padding: 40px 20px 20px 20px;
+      margin-top: 50px;
+      border-top: 3px solid #FFF;
+    }
+    .footer-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 30px;
+      padding-bottom: 30px;
+    }
+    .footer-column h3 {
+      color: #fff;
+      font-size: 1.1rem;
+      border-bottom: 2px solid #333;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+    
+    .footer-branding p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #aaa;
+      margin-top: 10px;
+    }
+    .footer-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #FFF;
+      letter-spacing: 1px;
+    }
+
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .footer-links li {
+      margin-bottom: 8px;
+    }
+    .footer-links a {
+      color: #aaa;
+      text-decoration: none;
+      transition: color 0.2s;
+      font-size: 0.9rem;
+    }
+    .footer-links a:hover {
+      color: #FFF;
+    }
+
+    /* ------------------------------------ */
+    /* تنسيق أيقونات السوشيال ميديا (منفصلة) */
+    /* ------------------------------------ */
+    .social-icons {
+      display: flex;
+      gap: 20px; /* زيادة التباعد بين الأيقونات */
+      margin-top: 15px;
+    }
+    .social-icon {
+      /* ❌ إزالة الخصائص الدائرية والخلفية */
+      display: inline-block; 
+      padding: 0;
+      margin: 0;
+      text-decoration: none;
+      color: #ccc; /* لون الأيقونة الافتراضي */
+      transition: color 0.3s;
+    }
+    
+    /* تنسيق وسم SVG داخل الرابط */
+    .social-icon svg {
+        width: 24px; /* حجم الأيقونة (يمكن زيادته أو إنقاصه) */
+        height: 24px;
+        fill: currentColor; /* ليرث لون النص (color) من a.social-icon */
+        transition: fill 0.3s;
+    }
+
+    /* 🎨 تأثير مرور الماوس بالألوان الأصلية (تغيير لون الأيقونة) 🎨 */
+    
+    /* Facebook (أزرق فيسبوك) */
+    .facebook-icon:hover {
+      color: #fff; /* تغيير لون النص (وهو لون SVG) */
+    }
+    
+    /* TikTok (أسود) */
+    .tiktok-icon:hover {
+      color: #fff; 
+      /* يمكن إضافة تأثير بسيط مثل ظل النص إذا أردت إبرازها أكثر: 
+      text-shadow: 1px 0 0 #25F4EE, -1px 0 0 #FF0050; 
+      */
+    }
+
+    /* YouTube (أحمر يوتيوب) */
+    .youtube-icon:hover {
+      color: #FF0000;
+    }
+    
+    /* Instagram (لون وردي/أحمر قوي) */
+    .instagram-icon:hover {
+      color: #E4405F;
+    }
+    
+    /* تنسيق رابط الإيميل */
+    .email-contact a {
+      color: #fff;
+      text-decoration: none; 
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .email-contact a:hover {
+        color: #fff;
+    }
+
+
+    /* تنسيق الجزء السفلي وحقوق النشر */
+    .footer-bottom {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+    .footer-copyright {
+      font-size: 0.8rem;
+      color: #777;
+    }
+    
+    /* ==================================== */
+    /* استجابة التصميم (Responsiveness) */
+    /* ==================================== */
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .footer-column {
+        padding-bottom: 20px;
+      }
+      .footer-column h3 {
+          width: fit-content;
+          margin: 0 auto 15px auto;
+      }
+      .footer-branding {
+        padding-bottom: 30px;
+        border-bottom: 1px solid #333;
+      }
+      .footer-links ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .footer-links li {
+        margin: 0 10px 10px 10px;
+      }
+      .social-icons {
+        justify-content: center;
+      }
+    }

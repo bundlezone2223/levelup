@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>LevelUp | فيديوهات تطوير الذات، تنمية المهارات، والتعلم المستمر</title>
+  
+  <meta name="description" content="LevelUp | انطلق في رحلة تطوير الذات والتعلم المستمر. منصة فيديوهات عربية مختارة بعناية لتنمية مهاراتك، زيادة ثقافتك، وتحقيق أهدافك خطوة بخطوة. ابدأ نموك الآن.">
+  
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FG8TWETLRX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-FG8TWETLRX');
+  </script>
+  <script>(function(s){s.dataset.zone='116655',s.src='https://groleegni.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
+  <link rel="icon" href="levelup-tab-icon.png" type="image/png">
+  
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="style-footer.css"> 
+  
+  <style>  
+    /* هنا فقط أكواد CSS الأساسية المتعلقة بـ body، header، و videos، والـ Shimmer */
+    body {
+      margin: 0;
+      background-color: #000;
+      font-family: sans-serif;
+      color: white;
+      zoom: 0.9;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      justify-content: center;
+      background-color: #000;
+      border-bottom: 1px solid #222;
+    }
+    header img {
+      max-height: 48px;
+    }
+    main {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+    }
+    .section {
+      margin: 1.5rem 0;
+    }
+
+    
+    .section-title {
+      font-size: 1.25rem;
+      margin: 0 1rem 0.5rem;
+    }
+
+    .video-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 0 1rem 1.5rem;
+    }
+    .video {
+      flex: 0 0 240px;
+      background-color: #000;
+    }
+    .video a {
+      display: block;
+    }
+    .video-thumb-wrapper {
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    /* 💥 التعديل ليدعم وسم <img> بـ alt و object-fit */
+    .video-thumb {
+      width: 100%;
+      height: auto; 
+      display: block; 
+      aspect-ratio: 16 / 9; 
+      object-fit: cover; 
+    }
+    /* ------------------------------------- */
+
+    .video-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+    }
+    .channel-thumb {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+    .video-title-box {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .video-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1.4;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal;
+      width: 100%;
+    }
+    
+    /* تنسيق الإعلان بحجم الفيديو الواحد */
+    .ad-box {
+      flex: 0 0 240px; 
+      width: 240px; 
+      background-color: #000;
+      padding: 0; 
+      border: none;
+      text-align: center;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px; 
+    }
+
+    /* تنسيق حاوية الإعلان */
+    .ad-box .ad-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; 
+        margin: 0 auto; 
+    }
+
+    /* ==================================== */
+    /* Shimmer Animation (اللمعة) */
+    /* ==================================== */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .video-thumb.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      min-height: 135px;
+      border-radius: 6px;
+    }
+
+    .channel-thumb.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+    }
+
+    .video-title.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      height: 16px !important;
+      border-radius: 4px;
+      width: 100% !important;
+      display: block !important;
+      -webkit-line-clamp: unset !important;
+    }
+
+    .video-subtitle-placeholder.loading {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      height: 12px !important;
+      width: 70% !important;
+      margin-top: 5px;
+      border-radius: 4px;
+      color: transparent !important;
+    }
+    
+    /* ==================================== */
+    /* أكواد اللودر */
+    /* ==================================== */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+    .loader {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      transform: rotate(45deg);
+    }
+    .square {
+      position: absolute;
+      width: 24.5px;
+      height: 24.5px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+    .pos1 { top: 0; left: 0; }
+    .pos2 { top: 0; left: 22.5px; }
+    .pos3 { top: 22.5px; left: 0; }
+    .pos4 { top: 22.5px; left: 22.5px; }
+    
+  </style>
+</head>
+<body>
+  
+  <div id="loading-screen">
+    <div class="loader">
+      <div id="sq1" class="square pos1"></div>
+      <div id="sq2" class="square pos2"></div>
+      <div id="sq3" class="square pos3"></div>
+      <div id="sq4" class="square pos4"></div>
+    </div>
+  </div>
+  
+  <header>
+    <img src="levelup_logo.png" alt="LevelUp Logo">
+  </header>
+  <main></main>
+  
+  <script type="module" src="app.js"></script>
+
+  <script>
+    // **محتوى loader.js مدمج هنا**
+    const sq1 = document.getElementById('sq1');
+    const sq2 = document.getElementById('sq2');
+    const sq3 = document.getElementById('sq3');
+    const sq4 = document.getElementById('sq4');
+    let emptyPos = 'pos2';
+    
+    function moveCycle(){
+      const order = ['pos2','pos4','pos3','pos1'];
+      let nextPosIndex = (order.indexOf(emptyPos) + 1) % order.length;
+      let nextEmpty = order[nextPosIndex];
+      [sq1,sq2,sq3,sq4].forEach(sq=>{
+        if(sq.classList.contains(nextEmpty)){
+          sq.classList.remove(nextEmpty);
+          sq.classList.add(emptyPos);
+        }
+      });
+      emptyPos = nextEmpty;
+    }
+    
+    let loaderInterval = setInterval(moveCycle, 300);
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(".video-thumb")) {
+        clearInterval(loaderInterval);
+        document.getElementById("loading-screen").style.display = "none";
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.querySelector("main"), { childList: true, subtree: true });
+
+    setTimeout(() => {
+      clearInterval(loaderInterval);
+      document.getElementById("loading-screen").style.display = "none";
+      observer.disconnect();
+    }, 8000);
+    // **نهاية محتوى loader.js**
+  </script>
+
+  <div id="footer-placeholder"></div>
+  <script>
+    // دالة لتحميل محتوى HTML الخارجي (Footer)
+    function loadFooterHTML() {
+      fetch('footer.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('footer-placeholder').innerHTML = html;
+          // 💡 سكريبت تحديث السنة تم نقله إلى هنا ليعمل بعد تحميل الـ Footer
+          const yearSpan = document.getElementById('current-year');
+          if (yearSpan) {
+            yearSpan.textContent = new Date().getFullYear();
+          }
+        })
+        .catch(err => console.error('فشل تحميل footer.html:', err));
+    }
+    window.addEventListener('DOMContentLoaded', loadFooterHTML);
+  </script>
+  
+  </body>
+
+</html>
