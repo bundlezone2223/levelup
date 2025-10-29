@@ -21,70 +21,33 @@ const allData = new Map();
 const renderedSections = new Set();
 
 // ====================================
-// 2. دوال معالجة البيانات 
+// 2. دوال بناء عناصر الواجهة (الحل القاطع لـ SEO)
 // ====================================
 
-// ====================================
-// 3. دوال بناء عناصر الواجهة
-// ====================================
-
-/** ينشئ العنصر النائب للفيديو (Shimmer Loading) */
-function createVideoElement() {
-  const el = document.createElement("div");
-  el.className = "video";
-  el.innerHTML = `
-    <a href="#" onclick="event.preventDefault()">
-      <div class="video-thumb-wrapper">
-        <div class="video-thumb loading"></div>
-      </div>
-    </a>
-    <div class="video-info">
-      <div class="channel-thumb loading"></div>
-      <div class="video-title-box">
-        <div class="video-title-row">
-          <div class="video-title loading"></div>
-        </div>
-        <div class="video-subtitle-placeholder loading" style="font-size: 0.75rem; color: #333;">&nbsp;</div>
-      </div>
-    </div>`;
-  return el;
-}
-
-/** 🚨 الحل القاطع: التحقق من وجود عنوان الفيديو، اسم القناة، وصورة القناة */
-async function upgradeVideoElement(videoDiv, info) {
-  if (!info || !info.videoId) {
-    videoDiv.remove(); 
-    return;
-  }
-  
-  // 1. التحقق القسري: إذا كان أي من هذه الحقول مفقوداً أو فارغاً، يتم حذف الفيديو.
+/** 🚨 الوظيفة: ينشئ عنصر الفيديو النهائي (القابل للفهرسة) */
+function createFinalVideoElement(info) {
+  // 1. التحقق القسري: إذا كانت البيانات مفقودة أو غير صالحة، لا ننشئ العنصر.
   const isVideoDataMissing = 
+      !info || !info.videoId || 
       !info.title || info.title.trim() === '' || 
       !info.channelTitle || info.channelTitle.trim() === '' || 
       !info.channelThumb || info.channelThumb.trim() === ''; 
 
   if (isVideoDataMissing) {
-    videoDiv.remove(); 
-    
-    // خطوة تنظيف إضافية: إزالة القسم إذا أصبح فارغاً
-    const row = videoDiv.closest('.video-row');
-    if (row) {
-        setTimeout(() => {
-            if (row.children.length === 0) {
-                const section = row.closest('.section');
-                if (section) section.remove();
-            }
-        }, 0);
-    }
-    return;
+    return null; 
   }
   
-  // 2. إذا كانت البيانات متوفرة، يتم عرض الفيديو بشكل طبيعي
+  // 2. إذا كانت البيانات متوفرة، يتم بناء عنصر الفيديو النهائي بالكامل
+  const videoDiv = document.createElement("div");
+  videoDiv.className = "video";
+  
+  // استخدام صورة عالية الجودة (hqdefault) لتقليل حجم التحميل الأولي
   const displayThumbUrl = `https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg`;
   const channelTitle = info.channelTitle; 
+  const videoUrl = `https://www.youtube.com/watch?v=${info.videoId}`;
   
   videoDiv.innerHTML = `
-    <a href="#" onclick="handleVideoClick('https://www.youtube.com/watch?v=${info.videoId}', event)">
+    <a href="${videoUrl}" target="_blank" onclick="handleVideoClick('${videoUrl}', event)">
       <div class="video-thumb-wrapper">
         <img src="${displayThumbUrl}"
              class="video-thumb" 
@@ -101,7 +64,10 @@ async function upgradeVideoElement(videoDiv, info) {
         <div style="font-size: 0.75rem; color: #aaa;">${channelTitle}</div>
       </div>
     </div>`;
+    
+    return videoDiv;
 }
+
 
 /** ينشئ قسم (Section) الفيديوهات */
 function createSection(sectionName, videos) {
@@ -109,7 +75,7 @@ function createSection(sectionName, videos) {
   container.className = "section";
   container.setAttribute("data-section", sectionName);
 
-  const title = document.createElement("h2"); // 🚨 التعديل لتطبيق <h2> لـ SEO
+  const title = document.createElement("h2"); 
   title.className = "section-title";
   title.textContent = sectionName;
 
@@ -119,60 +85,71 @@ function createSection(sectionName, videos) {
   // خلط قائمة الفيديوهات الأساسية
   const elementsToRender = [...videos].sort(() => Math.random() - 0.5);
   
-  elementsToRender.forEach(element => {
-      // 1. إدراج عنصر الفيديو 
-      const info = element;
-      const videoEl = createVideoElement();
-      row.appendChild(videoEl);
+  let videoCount = 0;
 
-      // استخدام IntersectionObserver لتحميل بيانات الفيديو عند الاقتراب من الشاشة
-      const observer = new IntersectionObserver(async (entries, obs) => {
-          for (const entry of entries) {
-              if (entry.isIntersecting) {
-                  // هنا يتم التحقق من التوفر وإزالة العنصر إذا كان غير متاح
-                  await upgradeVideoElement(videoEl, info); 
-                  obs.unobserve(entry.target);
-              }
-          }
-      }, { rootMargin: "200px" });
-      observer.observe(videoEl);
+  elementsToRender.forEach(info => {
+      // 🚨 الحل القاطع للفهرسة: إنشاء عنصر الفيديو النهائي مباشرةً دون Observer
+      const videoEl = createFinalVideoElement(info);
       
+      if (videoEl) {
+          row.appendChild(videoEl);
+          videoCount++;
+      }
   });
 
+  if (videoCount === 0) {
+      return null;
+  }
 
   container.appendChild(title);
   container.appendChild(row);
   document.querySelector("main").appendChild(container);
+
+  return container; 
 }
 
 // ====================================
-// 4. دوال التحكم والتحميل الرئيسية
+// 3. دوال التحكم والتحميل الرئيسية
 // ====================================
 
+/** 🚨 تم التعديل: إخفاء اللودر فور ظهور أول محتوى */
 function renderAllSections() {
-  // نقوم بتنظيف جميع الأقسام المعروضة حالياً وإعادة إنشائها لضمان إزالة الأقسام الفارغة
   document.querySelectorAll('.section').forEach(s => s.remove());
   renderedSections.clear();
   
+  let contentRendered = false; 
+
   for (const [sectionName, videos] of allData.entries()) {
-    // شرط: لا نعرض القسم إذا لم يكن فيه فيديوهات متاحة في البداية
     if (videos.length > 0 && !renderedSections.has(sectionName)) {
-      createSection(sectionName, videos);
-      renderedSections.add(sectionName);
+      const sectionEl = createSection(sectionName, videos);
+      if (sectionEl) {
+        renderedSections.add(sectionName);
+        contentRendered = true; 
+      }
     }
+  }
+
+  // 💡 إخفاء اللودر بمجرد الانتهاء من رسم الأقسام بالمحتوى القابل للفهرسة
+  if (contentRendered) {
+      const loadingScreen = document.getElementById("loading-screen");
+      if (loadingScreen) {
+          loadingScreen.style.display = "none";
+          // 🚨 إيقاف الـ setInterval باستخدام window.loaderInterval الذي تم تعريفه في index.html
+          if (window.loaderInterval) {
+              clearInterval(window.loaderInterval);
+          }
+      }
   }
 }
 
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
     const data = snapshot.val() || {};
-    // تنظيف البيانات الحالية قبل الإضافة
     allData.clear();
     
     for (const key in data) {
       const item = data[key];
       
-      // الشرط: تجاهل الفيديوهات التي لا تحتوي على قسم أو معرف فيديو
       if (!item.section || !item.videoId) continue; 
       
       if (!allData.has(item.section)) {
@@ -180,14 +157,13 @@ function loadVideos() {
       }
       allData.get(item.section).push(item);
     }
-    renderAllSections();
+    renderAllSections(); 
   });
 }
 
-/** دالة نقرة الفيديو: توجيه مباشر وفوري */
+/** دالة نقرة الفيديو: تركناها لكننا نعتمد على الرابط في HTML للفهرسة */
 function handleVideoClick(url, event) {
-  event.preventDefault();
-  window.open(url, '_blank'); 
+  // بما أن الرابط في HTML أصبح target="_blank"، لا حاجة لـ event.preventDefault() هنا
 }
 
 window.handleVideoClick = handleVideoClick;
