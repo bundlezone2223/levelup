@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">جارٍ تحميل محتوى الفيديو...</title>
+    <meta name="description" content=""> 
+    
+    <link rel="icon" href="levelup-tab-icon.png" type="image/png">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="style-footer.css"> 
+    <link rel="stylesheet" href="content-pages.css"> <style>
+        /* تنسيقات خاصة بصفحة عرض الصورة/البيانات */
+        .video-page-container {
+            max-width: 1000px;
+            margin: 20px auto 50px auto;
+            padding: 20px;
+        }
+        .content-card {
+            background-color: #111;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        .thumbnail-container {
+            width: 100%;
+            position: relative;
+            padding-top: 56.25%; /* نسبة 16:9 */
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .thumbnail-container img {
+            position: absolute;
+            top: 0; 
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .video-details h1 {
+            color: #FFF;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-align: right;
+            border-bottom: none;
+        }
+        .video-details p {
+            color: #AAA;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .tags-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag {
+            background-color: #333;
+            color: #FFF;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .tag:hover {
+            background-color: #555;
+        }
+
+        /* تعديلات على الأزرار */
+        .watch-button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto 0 auto;
+            padding: 15px;
+            background-color: #FF0000; /* أحمر يوتيوب */
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        <a href="index.html"><img src="levelup_logo.png" alt="LevelUp Logo"></a>
+    </header>
+
+    <main class="video-page-container">
+        <div id="video-content">
+            <h1 style="text-align: center; color: #444;">جارٍ تحميل محتوى الفيديو...</h1>
+        </div>
+
+        <section id="related-videos" style="margin-top: 50px;">
+            <h2>فيديوهات ذات صلة</h2>
+            <div class="video-row" id="related-videos-container">
+                </div>
+        </section>
+        
+    </main>
+    
+    <div id="footer-placeholder"></div>
+
+    <script type="module" src="video_page.js"></script>
+
+    <script>
+        // تحميل محتوى Footer
+        function loadFooterHTML() {
+            fetch('footer.html')
+              .then(response => response.text())
+              .then(html => {
+                document.getElementById('footer-placeholder').innerHTML = html;
+              })
+              .catch(err => console.error('فشل تحميل footer.html:', err));
+        }
+        loadFooterHTML();
+    </script>
+</body>
+</html>
