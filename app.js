@@ -18,12 +18,11 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const allData = new Map();
-const renderedSections = new Set();
 
 // ====================================
 // 2. دوال معالجة البيانات 
+// (هذا القسم فارغ كما كان سابقاً)
 // ====================================
-// ... (هذا القسم فارغ كما كان سابقاً)
 
 // ====================================
 // 3. دوال بناء عناصر الواجهة
@@ -34,7 +33,7 @@ function createVideoElement() {
   const el = document.createElement("div");
   el.className = "video";
   el.innerHTML = `
-    <a href="video.html?id=loading" onclick="event.preventDefault()">
+    <a href="video.html?id=loading">
       <div class="video-thumb-wrapper">
         <div class="video-thumb loading"></div>
       </div>
@@ -51,7 +50,7 @@ function createVideoElement() {
   return el;
 }
 
-/** 🚨 دالة تحديث عنصر الفيديو بالبيانات الحقيقية 🚨 */
+/** دالة تحديث عنصر الفيديو بالبيانات الحقيقية (بما في ذلك رابط صفحة الفيديو المنفردة) */
 async function upgradeVideoElement(videoDiv, info) {
   if (!info || !info.videoId) {
     videoDiv.remove(); 
@@ -66,16 +65,7 @@ async function upgradeVideoElement(videoDiv, info) {
 
   if (isVideoDataMissing) {
     videoDiv.remove(); 
-    const row = videoDiv.closest('.video-row');
-    if (row) {
-        setTimeout(() => {
-            if (row.children.length === 0) {
-                const section = row.closest('.section');
-                if (section) section.remove();
-            }
-        }, 0);
-    }
-    return;
+    return; 
   }
   
   // 2. إذا كانت البيانات متوفرة، يتم عرض الفيديو بشكل طبيعي
@@ -83,7 +73,7 @@ async function upgradeVideoElement(videoDiv, info) {
   const channelTitle = info.channelTitle; 
   
   videoDiv.innerHTML = `
-    <a href="https://www.youtube.com/watch?v=${info.videoId}" target="_blank"> 
+    <a href="video.html?id=${info.videoId}"> 
       <div class="video-thumb-wrapper">
         <img src="${displayThumbUrl}"
              class="video-thumb" 
@@ -102,26 +92,44 @@ async function upgradeVideoElement(videoDiv, info) {
     </div>`;
 }
 
-/** ينشئ قسم (Section) الفيديوهات */
-function createSection(sectionName, videos) {
+// ====================================
+// 4. دوال التحكم والتحميل الرئيسية
+// ====================================
+
+/** دالة مُعدّلة لإنشاء صف أفقي كبير لجميع الفيديوهات، ليتم التحكم به عبر CSS */
+function renderAllVideosRandomly() {
+  // 1. إزالة جميع الأقسام (Sections) الحالية
+  document.querySelectorAll('.section').forEach(s => s.remove());
+  
+  // 2. تجميع كل الفيديوهات في مصفوفة واحدة
+  let allVideos = [];
+  for (const videos of allData.values()) {
+    allVideos.push(...videos);
+  }
+  
+  // 3. التحقق والتوقف إذا لم توجد فيديوهات
+  if (allVideos.length === 0) {
+      // لا تفعل أي شيء، فقط انتظر إخفاء شاشة التحميل في loadVideos
+      return;
+  }
+  
+  // 4. خلط الفيديوهات عشوائياً
+  const elementsToRender = allVideos.sort(() => Math.random() - 0.5);
+
+  // 5. إنشاء حاوية Section وحاوية Video-Row 
   const container = document.createElement("div");
-  container.className = "section";
-  container.setAttribute("data-section", sectionName);
-
-  const title = document.createElement("h2");
-  title.className = "section-title";
-  title.textContent = sectionName;
-
+  container.className = "section all-videos-section"; 
+  
   const row = document.createElement("div");
   row.className = "video-row";
-  
-  const elementsToRender = [...videos].sort(() => Math.random() - 0.5);
-  
-  elementsToRender.forEach(element => {
-      const info = element;
-      const videoEl = createVideoElement();
-      row.appendChild(videoEl);
 
+  
+  // 6. إضافة الفيديوهات إلى الصف
+  elementsToRender.forEach(info => {
+      const videoEl = createVideoElement();
+      row.appendChild(videoEl); 
+
+      // تطبيق Intersection Observer (الـ Lazy Loading)
       const observer = new IntersectionObserver(async (entries, obs) => {
           for (const entry of entries) {
               if (entry.isIntersecting) {
@@ -131,29 +139,22 @@ function createSection(sectionName, videos) {
           }
       }, { rootMargin: "200px" });
       observer.observe(videoEl);
-      
   });
 
-  container.appendChild(title);
+  // 7. عرض الحاوية الموحدة في الواجهة
   container.appendChild(row);
   document.querySelector("main").appendChild(container);
-}
-
-// ====================================
-// 4. دوال التحكم والتحميل الرئيسية
-// ====================================
-
-function renderAllSections() {
-  document.querySelectorAll('.section').forEach(s => s.remove());
-  renderedSections.clear();
   
-  for (const [sectionName, videos] of allData.entries()) {
-    if (videos.length > 0 && !renderedSections.has(sectionName)) {
-      createSection(sectionName, videos);
-      renderedSections.add(sectionName);
+    // إخفاء شاشة التحميل بعد الانتهاء
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        loadingScreen.style.display = 'none';
+        if (window.loaderInterval) {
+            clearInterval(window.loaderInterval);
+        }
     }
-  }
 }
+
 
 function loadVideos() {
   onValue(ref(db, 'videos'), snapshot => {
@@ -170,16 +171,9 @@ function loadVideos() {
       }
       allData.get(item.section).push(item);
     }
-    renderAllSections();
     
-    // إخفاء شاشة التحميل بعد الانتهاء
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-        loadingScreen.style.display = 'none';
-        if (window.loaderInterval) {
-            clearInterval(window.loaderInterval);
-        }
-    }
+    // 🚨 الحل هنا: استدعاء الدالة المسؤولة عن العرض
+    renderAllVideosRandomly();
   });
 }
 
