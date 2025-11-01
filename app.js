@@ -21,8 +21,9 @@ const allData = new Map();
 
 // ====================================
 // 2. دوال معالجة البيانات 
-// (هذا القسم فارغ كما كان سابقاً)
 // ====================================
+
+// ... (لا يوجد تغييرات هنا)
 
 // ====================================
 // 3. دوال بناء عناصر الواجهة
@@ -50,14 +51,14 @@ function createVideoElement() {
   return el;
 }
 
-/** دالة تحديث عنصر الفيديو بالبيانات الحقيقية (بما في ذلك رابط صفحة الفيديو المنفردة) */
+/** دالة تحديث عنصر الفيديو بالبيانات الحقيقية */
 async function upgradeVideoElement(videoDiv, info) {
   if (!info || !info.videoId) {
     videoDiv.remove(); 
     return;
   }
   
-  // 1. التحقق القسري:
+  // التحقق القسري:
   const isVideoDataMissing = 
       !info.title || info.title.trim() === '' || 
       !info.channelTitle || info.channelTitle.trim() === '' || 
@@ -68,7 +69,6 @@ async function upgradeVideoElement(videoDiv, info) {
     return; 
   }
   
-  // 2. إذا كانت البيانات متوفرة، يتم عرض الفيديو بشكل طبيعي
   const displayThumbUrl = `https://img.youtube.com/vi/${info.videoId}/hqdefault.jpg`;
   const channelTitle = info.channelTitle; 
   
@@ -96,7 +96,7 @@ async function upgradeVideoElement(videoDiv, info) {
 // 4. دوال التحكم والتحميل الرئيسية
 // ====================================
 
-/** دالة مُعدّلة لإنشاء صف أفقي كبير لجميع الفيديوهات، ليتم التحكم به عبر CSS */
+/** دالة لإنشاء صف أفقي كبير لجميع الفيديوهات وخلطها عشوائياً */
 function renderAllVideosRandomly() {
   // 1. إزالة جميع الأقسام (Sections) الحالية
   document.querySelectorAll('.section').forEach(s => s.remove());
@@ -107,16 +107,14 @@ function renderAllVideosRandomly() {
     allVideos.push(...videos);
   }
   
-  // 3. التحقق والتوقف إذا لم توجد فيديوهات
   if (allVideos.length === 0) {
-      // لا تفعل أي شيء، فقط انتظر إخفاء شاشة التحميل في loadVideos
       return;
   }
   
-  // 4. خلط الفيديوهات عشوائياً
+  // 3. خلط الفيديوهات عشوائياً
   const elementsToRender = allVideos.sort(() => Math.random() - 0.5);
 
-  // 5. إنشاء حاوية Section وحاوية Video-Row 
+  // 4. إنشاء حاوية Section وحاوية Video-Row 
   const container = document.createElement("div");
   container.className = "section all-videos-section"; 
   
@@ -124,12 +122,11 @@ function renderAllVideosRandomly() {
   row.className = "video-row";
 
   
-  // 6. إضافة الفيديوهات إلى الصف
+  // 5. إضافة الفيديوهات إلى الصف مع Lazy Loading
   elementsToRender.forEach(info => {
       const videoEl = createVideoElement();
       row.appendChild(videoEl); 
 
-      // تطبيق Intersection Observer (الـ Lazy Loading)
       const observer = new IntersectionObserver(async (entries, obs) => {
           for (const entry of entries) {
               if (entry.isIntersecting) {
@@ -141,11 +138,11 @@ function renderAllVideosRandomly() {
       observer.observe(videoEl);
   });
 
-  // 7. عرض الحاوية الموحدة في الواجهة
+  // 6. عرض الحاوية الموحدة في الواجهة
   container.appendChild(row);
   document.querySelector("main").appendChild(container);
   
-    // إخفاء شاشة التحميل بعد الانتهاء
+    // 7. إخفاء شاشة التحميل بعد الانتهاء
     const loadingScreen = document.getElementById('loading-screen');
     if (loadingScreen) {
         loadingScreen.style.display = 'none';
@@ -172,7 +169,7 @@ function loadVideos() {
       allData.get(item.section).push(item);
     }
     
-    // 🚨 الحل هنا: استدعاء الدالة المسؤولة عن العرض
+    // استدعاء دالة العرض العشوائي
     renderAllVideosRandomly();
   });
 }
