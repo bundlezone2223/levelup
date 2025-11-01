@@ -23,10 +23,15 @@ const db = getDatabase(app);
 
 /** يضيف ترميز Schema.org/VideoObject الضروري لـ SEO */
 function injectSchemaMarkup(item) {
+    // 🚨 الإصلاح النهائي: التحقق من وجود جميع الحقول المطلوبة قبل الحقن
+    if (!item || !item.title || !item.videoId || !item.description || item.description.trim() === '') {
+        console.warn("لا يمكن حقن Schema Markup: بيانات الفيديو غير كاملة. يرجى ملء حقل الوصف (description).");
+        return; 
+    }
+    
     const script = document.createElement('script');
     script.setAttribute('type', 'application/ld+json');
     
-    // التأكد من توفر البيانات الأساسية للـ Schema
     const thumbnailUrl = `https://img.youtube.com/vi/${item.videoId}/hqdefault.jpg`;
     const uploadDate = item.uploadDate || new Date().toISOString().split('T')[0];
     
@@ -34,10 +39,10 @@ function injectSchemaMarkup(item) {
         "@context": "https://schema.org",
         "@type": "VideoObject",
         "name": item.title,
-        "description": item.description || item.title,
+        "description": item.description, // نضمن الآن وجود الوصف
         "thumbnailUrl": thumbnailUrl,
         "uploadDate": uploadDate,
-        "duration": item.duration || "PT0M0S", // يمكن تعديلها لاحقاً
+        "duration": item.duration || "PT0M0S", 
         "contentUrl": `https://www.youtube.com/watch?v=${item.videoId}`,
         "embedUrl": `https://www.youtube.com/embed/${item.videoId}`,
         "publisher": {
@@ -48,7 +53,6 @@ function injectSchemaMarkup(item) {
                 "url": "https://www.Level2up.online/levelup_logo.png" 
             }
         },
-        // إضافة بيانات القناة
         "creator": {
             "@type": "Person",
             "name": item.channelTitle || "غير محدد"
@@ -57,8 +61,6 @@ function injectSchemaMarkup(item) {
     
     script.textContent = JSON.stringify(schema);
     document.head.appendChild(script);
-    
-    // يتم وضع هذا الترميز في الـ <head>، وهو ما يبحث عنه Google
 }
 
 /** يعرض تفاصيل الفيديو والمشغل ويحدّث الـ SEO */
@@ -73,7 +75,7 @@ function renderVideoDetails(item) {
         descriptionMeta.setAttribute('content', item.description || `شاهد ${item.title} الآن على LevelUp.`);
     }
 
-    // 2. حقن ترميز الفيديو (Video Schema) لـ Google
+    // 2. حقن ترميز الفيديو (Video Schema)
     injectSchemaMarkup(item); 
     
     // 3. عرض المشغل والتفاصيل
@@ -98,8 +100,6 @@ function renderVideoDetails(item) {
         </div>
     `;
 
-    // 4. تحميل الفيديوهات ذات الصلة (لإظهار الأقسام في index.html، ولكن هذا يتطلب إعادة هيكلة كبيرة). 
-    // الآن، سنترك هذا القسم فارغاً لتسريع الإصلاح الحالي.
     document.getElementById('related-videos-container').innerHTML = `<p style="color:#555; text-align: center;">لا يوجد حالياً نظام لإظهار الفيديوهات ذات الصلة.</p>`;
 }
 
@@ -119,15 +119,12 @@ function loadVideoPage() {
         return;
     }
     
-    // 1. إعداد الاستعلام
     const videosRef = ref(db, 'videos');
-    // الاستعلام يعتمد على فهرسة 'videoId' التي يجب أن تكون قد أضفتها في قواعد Firebase
+    // الاستعلام يعتمد على فهرسة 'videoId'
     const videoQuery = query(videosRef, orderByChild('videoId'), equalTo(videoId));
     
-    // 2. تنفيذ الاستعلام وجلب البيانات
     get(videoQuery).then((snapshot) => {
         if (snapshot.exists()) {
-            // Firebase تُرجع كائنات، لذا نحصل على القيمة الأولى (التي هي الفيديو الذي نبحث عنه)
             const videoData = Object.values(snapshot.val())[0]; 
             
             if (videoData && videoData.title && videoData.videoId) {
@@ -139,7 +136,6 @@ function loadVideoPage() {
             videoContent.innerHTML = `<h1 style="text-align: center; color: #444;">عذراً، لم يتم العثور على الفيديو بالمعرّف: ${videoId}</h1>`;
         }
     }).catch((error) => {
-        // 🚨 هذا هو السطر الذي سيكشف الخطأ بوضوح إذا فشل الاتصال بقاعدة البيانات
         console.error("خطأ في جلب بيانات الفيديو (تحقق من فهرسة Firebase):", error);
         videoContent.innerHTML = `<h1 style="text-align: center; color: red;">حدث خطأ في جلب البيانات. الرجاء التحقق من فهرسة Firebase وتأكد من أن المعرّف صحيح.</h1>`;
     });
